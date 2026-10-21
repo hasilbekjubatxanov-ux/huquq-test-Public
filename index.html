@@ -7,6 +7,7 @@
 <meta property="og:title" content="Huquq fanidan olimpiada testi">
 <meta property="og:description" content="8–9-sinflar · 30 ta savol · 60 daqiqa · 50 ball. Natija va sertifikat test tugashi bilan.">
 <meta name="author" content="Jubatxanov Hasilbek">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Huquq olimpiadasi testi</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -200,6 +201,28 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;background:var(--ink);color:var(--paper);
   font-family:var(--f-ui);font-size:14px;line-height:1.4;padding:12px 16px;border-radius:8px;width:max-content;max-width:min(calc(100vw - 32px),460px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .toast.warn{background:var(--gold);color:#fff}
+.admin{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;margin-top:8px}
+#aBody{display:grid;gap:14px;min-width:0}
+.atable table{width:100%;border-collapse:collapse;font-family:var(--f-ui);font-size:14px;font-variant-numeric:tabular-nums}
+.atable th,.atable td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+.atable th{font-weight:500;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:var(--bg)}
+.atable td.r,.atable th.r{text-align:right}
+.atable tbody tr:last-child td{border-bottom:0}
+.arow{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;justify-content:space-between}
+.arow input[type=password]{font:inherit;font-family:var(--f-ui);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%}
+.astats{display:flex;gap:10px;flex-wrap:wrap}
+.astats div{border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+.astats b{display:block;font-size:22px;color:var(--navy);font-variant-numeric:tabular-nums}
+.atable{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+.atable table{min-width:760px}
+.atable td,.atable th{white-space:nowrap}
+.atable tr.rep td{color:var(--muted);font-style:italic}
+.atable tr.top td:nth-child(3){color:var(--gold);font-weight:700}
+.certact{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.modal{position:fixed;inset:0;z-index:30;background:rgba(10,20,18,.6);display:grid;place-items:center;padding:16px}
+.mbox{background:var(--paper);border-radius:12px;padding:18px;display:grid;gap:12px;width:min(100%,720px);max-height:calc(100vh - 32px);overflow:auto;font-family:var(--f-ui)}
+.mbox img{width:100%;height:auto;border:1px solid var(--line);border-radius:4px;display:block}
+.mbox .row{display:flex;gap:10px;flex-wrap:wrap}
 footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted);text-align:center}
 </style>
 
@@ -323,6 +346,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         </div>
       </div>
     </section></div>
+    <div class="certact"><button class="btn" id="savePng" type="button">Sertifikatni rasm qilib saqlash</button><span class="note" id="pngMsg"></span></div>
     <section class="card prizeact" id="prizeAct" hidden>
       <p><b>Sovg‘angizni oling</b>Sertifikatni skrinshot qilib, Telegramda @jubatkhanovv ga yuboring va 8–11-sinflardan qaysi biri kerakligini yozing.</p>
       <a class="btn gold" href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv ga yozish</a>
@@ -350,7 +374,36 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   </div>
 </div>
 
+<div class="wrap" id="adminView" hidden>
+  <section class="card admin">
+    <div class="brand">Admin · Natijalar reytingi</div>
+    <div class="arow" id="aLogin">
+      <label class="field" for="aPass" style="flex:1;min-width:180px"><span class="note">Parol</span><input id="aPass" type="password" autocomplete="current-password"></label>
+      <button class="btn" id="aGo" type="button">Ko‘rish</button>
+    </div>
+    <div class="err" id="aErr"></div>
+    <div id="aBody" hidden>
+      <div class="astats" id="aStats"></div>
+      <div class="arow">
+        <label class="note"><input type="checkbox" id="aAll"> Takroriy urinishlarni ham ko‘rsatish</label>
+        <button class="btn ghost" id="aRefresh" type="button">Yangilash</button>
+      </div>
+      <div class="atable"><table>
+        <thead><tr><th>#</th><th>Ism</th><th class="r">Ball</th><th class="r">To‘g‘ri</th><th class="r">O / O‘ / Q</th><th class="r">Vaqt</th><th class="r">Chiqish</th><th>Telegram</th><th>Sana</th></tr></thead>
+        <tbody id="aRows"></tbody>
+      </table></div>
+    </div>
+  </section>
+</div>
 <div class="toast" id="toast" role="status" hidden></div>
+<div class="modal" id="imgModal" hidden>
+  <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <b id="mTitle">Sertifikat rasmi tayyor</b>
+    <img id="certImg" alt="Sertifikat rasmi">
+    <p class="note">Telefonda: rasmni bosib turing va «Saqlash» ni tanlang. Kompyuterda: «Yuklab olish» tugmasini bosing.</p>
+    <div class="row"><a class="btn" id="dlLink" download="sertifikat.png" href="#">Yuklab olish</a><button class="btn ghost" id="closeModal" type="button">Yopish</button></div>
+  </div>
+</div>
 <div class="wrap"><footer>Muallif: Jubatxanov Hasilbek · <a href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener">t.me/jubatkhanov_huquq</a></footer></div>
 
 <script>
@@ -394,12 +447,16 @@ const L=["A","B","C","D"];
 const fmt=n=>(Math.round(n*10)/10).toString().replace(".",",");
 const $=id=>document.getElementById(id);
 const SKEY="huquq89-olimpiada-v1";
+const ENDPOINT=""; // Google Apps Script manzili
+const TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
+if(TG){try{TG.ready();TG.expand()}catch(e){}}
+let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
 const LIMIT=60*60;
 const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
-let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[];
+let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[],sent=false;
 const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
-function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned}))}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 let toastT=0;
 function toast(msg,kind){const t=$("toast");t.textContent=msg;t.className="toast"+(kind?" "+kind:"");t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,6000)}
@@ -489,8 +546,84 @@ document.addEventListener("visibilitychange",()=>{
 });
 
 function finish(){
-  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();renderResult(false);
+  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();renderResult(false);send();
 }
+function send(){
+  if(!ENDPOINT||sent)return;
+  const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
+  const payload={name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
+    tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId};
+  fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
+    .then(()=>{sent=true;save()}).catch(()=>{});
+}
+let certData=null;
+function drawCert(d){
+  const W=1414,H=1000,c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const F='"Poppins", system-ui, -apple-system, "Segoe UI", Arial, sans-serif';
+  const CG="#0d5c4b",CT="#139a78",CO="#f0683a",CY="#f6c445",CC="#fbe6a6",INK="#1d2a27",MUT="#4b5a56";
+  x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  // chap panel: 2 x 5 plitka
+  const tw=190,th=200,tiles=[
+    [[ "r",CY],["c",100,105,100,CT],["c",100,105,52,CG]],[["r",CC],["c",0,0,98,CO],["c",0,0,46,CC]],
+    [["r",CG],["b",12,CT],["b",34,CT],["b",56,CT],["b",78,CT]],[["r",CT],["c",100,52,52,CO],["c",100,52,26,CY]],
+    [["r",CY],["c",0,105,100,CG],["c",0,105,50,CT]],[["r",CG],["c",50,105,50,CC],["b0",0,10,CY]],
+    [["r",CO],["c",100,0,100,CC],["c",100,0,48,CY]],[["r",CT],["p",[[0,105],[100,0],[100,105]],CG],["p",[[50,105],[100,52],[100,105]],CT]],
+    [["r",CT],["c",100,105,100,CO],["c",100,105,50,CC]],[["r",CG],["c",0,105,98,CY],["c",0,105,48,CT]]];
+  tiles.forEach((ops,k)=>{const ox=(k%2)*tw,oy=Math.floor(k/2)*th,sx=tw/100,sy=th/105;
+    x.save();x.beginPath();x.rect(ox,oy,tw,th);x.clip();
+    ops.forEach(o=>{x.fillStyle=o[o.length-1];x.beginPath();
+      if(o[0]==="r")x.rect(ox,oy,tw,th);
+      else if(o[0]==="c")x.arc(ox+o[1]*sx,oy+o[2]*sy,o[3]*sx,0,Math.PI*2);
+      else if(o[0]==="b")x.rect(ox,oy+o[1]*sy,tw,10*sy);
+      else if(o[0]==="b0")x.rect(ox,oy+o[1]*sy,tw,o[2]*sy);
+      else if(o[0]==="p"){o[1].forEach((pt,i)=>i?x.lineTo(ox+pt[0]*sx,oy+pt[1]*sy):x.moveTo(ox+pt[0]*sx,oy+pt[1]*sy));x.closePath()}
+      x.fill()});
+    x.restore()});
+  const X=450,R=W-70,MW=R-X;
+  const font=(w,s,it)=>x.font=(it?"italic ":"")+w+" "+s+"px "+F;
+  const fit=(t,w,s,max)=>{let z=s;font(w,z);while(x.measureText(t).width>max&&z>14){z-=2;font(w,z)}return z};
+  const wrap=(t,max)=>{const out=[];let line="";t.split(" ").forEach(wd=>{const tt=line?line+" "+wd:wd;if(x.measureText(tt).width>max&&line){out.push(line);line=wd}else line=tt});if(line)out.push(line);return out};
+  x.textBaseline="alphabetic";
+  // logotip
+  x.fillStyle=CG;x.beginPath();x.arc(X+34,98,34,0,Math.PI*2);x.fill();
+  x.strokeStyle="#fff";x.lineWidth=3;x.lineCap="round";x.beginPath();
+  x.moveTo(X+34,78);x.lineTo(X+34,116);x.moveTo(X+24,116);x.lineTo(X+44,116);x.moveTo(X+16,85);x.lineTo(X+52,85);
+  x.moveTo(X+16,85);x.lineTo(X+9,101);x.moveTo(X+16,85);x.lineTo(X+23,101);x.moveTo(X+52,85);x.lineTo(X+45,101);x.moveTo(X+52,85);x.lineTo(X+59,101);x.stroke();
+  x.beginPath();x.arc(X+16,101,7,0,Math.PI);x.arc(X+52,101,7,0,Math.PI);x.stroke();
+  x.fillStyle=INK;font(700,30);x.fillText("JUBATKHANOV | HUQUQ",X+86,94);
+  x.fillStyle=MUT;font(500,19);x.fillText("HUQUQ FANIDAN OLIMPIADA TESTI · 8–9-SINFLAR",X+86,122);
+  // sarlavha
+  x.fillStyle=CG;fit(d.title,700,d.special?136:112,MW);x.fillText(d.title,X-4,300);
+  x.fillStyle=CT;fit(d.sub.toUpperCase(),600,44,MW);x.fillText(d.sub.toUpperCase(),X,356);
+  x.fillStyle=INK;font(500,20,true);x.fillText("USHBU HUJJAT TAQDIM ETILADI:",X,414);
+  fit(d.name,700,60,MW-60);x.fillText(d.name,X,494);
+  x.strokeStyle="#9aa8a4";x.lineWidth=2;x.beginPath();x.moveTo(X,518);x.lineTo(X+Math.min(MW-60,800),518);x.stroke();
+  font(500,21,true);let y=562;wrap(d.desc.toUpperCase(),Math.min(MW-40,820)).forEach(l=>{x.fillText(l,X,y);y+=33});
+  // chiplar
+  y+=6;font(600,28);const ch=[[d.score,CG],[d.date,CO]];let cx=X;
+  ch.forEach(([t,col])=>{const w=x.measureText(t).width+34;x.fillStyle=col;x.fillRect(cx,y,w,48);x.fillStyle="#fff";x.fillText(t,cx+17,y+35);cx+=w+14});
+  y+=72;
+  if(d.prize){font(500,21);const lines=wrap(d.prize,MW-70);const bh=lines.length*32+28;
+    x.fillStyle="#fff7ef";x.fillRect(X,y,MW-30,bh);x.strokeStyle=CO;x.lineWidth=3;x.strokeRect(X,y,MW-30,bh);
+    let yy=y+38;lines.forEach((l,i)=>{if(i===0&&l.startsWith("Sovg‘a:")){font(700,21);x.fillStyle=CO;x.fillText("Sovg‘a:",X+18,yy);const w=x.measureText("Sovg‘a: ").width;font(500,21);x.fillStyle=INK;x.fillText(l.slice(8),X+18+w,yy)}else{x.fillStyle=INK;x.fillText(l,X+18,yy)}yy+=32})}
+  // imzolar
+  const sw=(MW-60)/2;[["JUBATXANOV HASILBEK","Test muallifi"],["@JUBATKHANOV_HUQUQ","Telegram kanal"]].forEach(([a,b],i)=>{
+    const sx0=X+i*(sw+60);x.strokeStyle="#33413d";x.lineWidth=2;x.beginPath();x.moveTo(sx0,905);x.lineTo(sx0+sw,905);x.stroke();
+    x.textAlign="center";x.fillStyle=INK;font(700,20);x.fillText(a,sx0+sw/2,935);x.fillStyle=MUT;font(600,18,true);x.fillText(b,sx0+sw/2,960);x.textAlign="left"});
+  return c;
+}
+$("savePng").addEventListener("click",async()=>{
+  if(!certData)return;const btn=$("savePng");btn.disabled=true;$("pngMsg").textContent="Rasm tayyorlanmoqda…";
+  try{
+    try{await Promise.race([Promise.all([document.fonts.load('700 30px "Poppins"'),document.fonts.load('500 20px "Poppins"'),document.fonts.load('italic 500 20px "Poppins"'),document.fonts.load('600 20px "Poppins"')]),new Promise(r=>setTimeout(r,2500))])}catch(e){}
+    const url=drawCert(certData).toDataURL("image/png");
+    $("certImg").src=url;$("dlLink").href=url;$("dlLink").download="sertifikat-"+name.replace(/[^\p{L}0-9]+/gu,"-")+".png";
+    $("imgModal").hidden=false;$("pngMsg").textContent="";
+  }catch(e){$("pngMsg").textContent="Rasm tayyorlab bo‘lmadi. Sertifikatni skrinshot qiling."}
+  btn.disabled=false;
+});
+$("closeModal").addEventListener("click",()=>{$("imgModal").hidden=true});
+$("imgModal").addEventListener("click",e=>{if(e.target.id==="imgModal")$("imgModal").hidden=true});
 function renderResult(again){
   const time=mmss(spent());
   const sec=[0,0,0];let total=0;const g=$("rgrid");g.textContent="";
@@ -510,6 +643,9 @@ function renderResult(again){
   const pz=$("cPrize");pz.hidden=!special;pz.textContent="";
   if(special){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
   $("prizeAct").hidden=!special;
+  certData={special,name,title:special?"SERTIFIKAT":"TASHAKKURNOMA",sub:special?"Yuqori natija uchun":"Olimpiadada ishtirok etgani uchun",
+    desc:$("cDesc").textContent,score:"BALL: "+fmt(total)+" / 50",date,
+    prize:special?"Sovg‘a: 8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring.":""};
   $("cFacts").textContent="To‘g‘ri javoblar: "+corr+" / 30 · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
   const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
   sec.forEach((c,k)=>{
@@ -531,12 +667,43 @@ $("copyBtn").addEventListener("click",()=>{
   const sel=()=>{const r=document.createRange();r.selectNodeContents($("copybox"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyMsg").textContent="Matn belgilandi — nusxalang."};
   try{navigator.clipboard.writeText(txt).then(()=>$("copyMsg").textContent="Nusxalandi.",sel)}catch(e){sel()}
 });
+function loadAdmin(){
+  const pw=$("aPass").value;if(!pw){$("aErr").textContent="Parolni yozing.";return}
+  if(!ENDPOINT){$("aErr").textContent="Natijalar manzili hali ulanmagan.";return}
+  $("aErr").textContent="Yuklanmoqda…";
+  fetch(ENDPOINT+"?key="+encodeURIComponent(pw)).then(r=>r.json()).then(d=>{
+    if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
+    try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
+    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=d.rows||[];renderAdmin();
+  }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
+}
+let adminRows=[];
+function renderAdmin(){
+  const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror),rows=all?adminRows:first;
+  const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
+  const st=$("aStats");st.textContent="";
+  [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
+    const d=document.createElement("div");const b=document.createElement("b");b.textContent=v;d.append(b,document.createTextNode(k));st.appendChild(d)});
+  const tb=$("aRows");tb.textContent="";let rank=0;
+  rows.forEach(r=>{const tr=document.createElement("tr");if(r.takror)tr.className="rep";else{rank++;if(r.ball>43)tr.className="top"}
+    [r.takror?"–":rank,r.ism+(r.takror?" (takroriy)":""),fmt(r.ball),r.togri+"/30",r.oson+" / "+r.orta+" / "+r.qiyin,r.vaqt+(r.tugadi?" ⏱":""),r.chiqish,r.tg,r.sana].forEach((v,i)=>{
+      const td=document.createElement("td");td.textContent=v;if(i>=2&&i<=6)td.className="r";tr.appendChild(td)});tb.appendChild(tr)});
+  if(!rows.length){const tr=document.createElement("tr");const td=document.createElement("td");td.colSpan=9;td.textContent="Hozircha natija yo‘q.";tr.appendChild(td);tb.appendChild(tr)}
+}
+$("aGo").addEventListener("click",loadAdmin);
+$("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
+$("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
+$("aAll").addEventListener("change",renderAdmin);
 buildNav();
+if(location.hash==="#admin"){
+  $("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("adminView").hidden=false;
+  try{const pw=sessionStorage.getItem("huquq-admin");if(pw){$("aPass").value=pw;loadAdmin()}}catch(e){}
+}else
 (function boot(){
   const st=load();if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
-  done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];
-  if(done){started=true;renderResult(true);return}
+  done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
+  if(done){started=true;renderResult(true);send();return}
   if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
   enterTest();toast("Test qolgan joyidan davom ettirildi. Vaqt to‘xtamagan.");
 })();
