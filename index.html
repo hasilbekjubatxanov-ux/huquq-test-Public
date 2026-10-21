@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Huquq fanidan onlayn olimpiada testi: 8–9-sinflar, 30 ta savol, 60 daqiqa, 50 ball. Muallif: Jubatxanov Hasilbek.">
+<meta property="og:title" content="Huquq fanidan olimpiada testi">
+<meta property="og:description" content="8–9-sinflar · 30 ta savol · 60 daqiqa · 50 ball. Natija va sertifikat test tugashi bilan.">
+<meta name="author" content="Jubatxanov Hasilbek">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Huquq olimpiadasi testi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&family=Poppins:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+<style>
+/* Layout: bitta ustun; test paytida yuqorida yopishqoq panel, markazda bitta savol kartasi va pastda "Oldingi / Keyingi"; natija — sertifikat, diagramma, kanalga taklif */
+:root{
+  --bg:#f4f6f3; --paper:#ffffff; --ink:#1d2a27; --muted:#5b6a66; --line:#dfe5e1;
+  --navy:#0d5c4b; --navy-soft:#e4f1ec; --gold:#d9602f; --gold-soft:#fdf1e7;
+  --teal:#139a78; --yellow:#f6c445; --cream:#fbe6a6; --panel:#0d5c4b; --on-panel:#ffffff;
+  --ok:#1e7a4c; --bad:#b33a3a;
+  --f-display:"Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-body:"Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-ui:"Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#101614; --paper:#17201d; --ink:#e4ebe8; --muted:#97a6a1; --line:#2a3632;
+  --navy:#5fcfac; --navy-soft:#1c3530; --gold:#f08a5d; --gold-soft:#33241b; --ok:#5cc28d; --bad:#e57b7b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#101614; --paper:#17201d; --ink:#e4ebe8; --muted:#97a6a1; --line:#2a3632;
+  --navy:#5fcfac; --navy-soft:#1c3530; --gold:#f08a5d; --gold-soft:#33241b; --ok:#5cc28d; --bad:#e57b7b; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
+.wrap{max-width:720px;margin:0 auto}
+a{color:var(--navy)}
+
+header.top{padding-block:22px 18px;display:grid;gap:6px}
+.strip{display:flex;gap:3px;margin-bottom:10px}
+.strip i{width:22px;height:6px;border-radius:3px}
+.strip i:nth-child(1){background:var(--navy)}.strip i:nth-child(2){background:var(--teal)}.strip i:nth-child(3){background:var(--gold)}.strip i:nth-child(4){background:var(--yellow)}.strip i:nth-child(5){background:var(--cream)}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{font-family:var(--f-ui);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);font-weight:700}
+.tg{font-family:var(--f-ui);font-size:13px;font-weight:600;text-decoration:none;color:var(--navy);border:1px solid var(--navy);border-radius:999px;padding:6px 12px;display:inline-flex;align-items:center;gap:6px}
+.tg svg{width:15px;height:15px;fill:currentColor}
+.tg:hover{background:var(--navy-soft)}
+h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700;line-height:1.2;margin:6px 0 0;text-wrap:balance;color:var(--navy);letter-spacing:-.005em}
+.meta{font-family:var(--f-ui);font-size:14px;color:var(--muted)}
+.scale{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;font-family:var(--f-ui);font-size:13px}
+.scale span{border:1px solid var(--line);border-radius:6px;padding:3px 9px;background:var(--paper)}
+.scale b{font-variant-numeric:tabular-nums}
+
+.card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px}
+.auth{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:340px;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.pane{padding:30px 28px;display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:0}
+.pane h2{margin:0;font-family:var(--f-display);font-size:22px;font-weight:700;color:var(--navy)}
+.pane .note{margin:0}
+.overlay{position:absolute;top:0;bottom:0;left:50%;width:50%;background:var(--panel);color:var(--on-panel);display:grid;overflow:hidden;
+  transition:transform .65s cubic-bezier(.7,0,.25,1);z-index:2}
+.auth.flip .overlay{transform:translateX(-100%)}
+.ov-art{position:absolute;right:0;bottom:0;width:120px;height:120px;opacity:.9;pointer-events:none}
+.ov-face{grid-area:1/1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:10px;padding:30px 28px;transition:opacity .35s .2s}
+.ov-face h3{margin:0;font-family:var(--f-display);font-size:26px;font-weight:700}
+.ov-face p{margin:0;font-family:var(--f-ui);font-size:14px;opacity:.9;max-width:28ch}
+.ov-b{opacity:0;pointer-events:none}
+.auth.flip .ov-a{opacity:0;pointer-events:none}.auth.flip .ov-b{opacity:1;pointer-events:auto}
+.btn.line{background:transparent;color:var(--on-panel);border-color:var(--on-panel);border-radius:999px;padding:9px 22px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px}
+.btn.line:hover{background:rgba(255,255,255,.12)}
+@media (max-width:640px){
+  .auth{grid-template-columns:1fr;min-height:0}
+  .overlay{position:relative;left:0;width:100%;grid-row:1;transform:none!important;transition:none}
+  .ov-face{padding:24px 20px 26px}
+  .ov-art{width:80px;height:80px}
+  .auth .rules-pane{display:none}.auth.flip .rules-pane{display:flex}.auth.flip .form-pane{display:none}
+  .pane{padding:22px 20px}
+}
+@media (prefers-reduced-motion:reduce){.overlay,.ov-face{transition:none}}
+.start{display:grid;gap:6px}
+.start label{font-family:var(--f-ui);font-size:14px;font-weight:500}
+.start input{font:inherit;font-family:var(--f-ui);padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;max-width:420px}
+.field{display:grid;gap:6px;min-width:0}
+.rules{margin:0;padding-left:20px;font-family:var(--f-ui);font-size:14px;color:var(--muted);display:grid;gap:3px}
+.btn{font-family:var(--f-ui);font-size:15px;font-weight:600;border:1px solid var(--navy);border-radius:6px;padding:11px 18px;cursor:pointer;background:var(--navy);color:var(--paper);text-decoration:none;display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.ghost{background:transparent;color:var(--navy)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--paper)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:focus-visible,.opt:focus-within,.start input:focus-visible,.nav a:focus-visible,.tg:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.err{font-family:var(--f-ui);font-size:13px;color:var(--bad);min-height:1em}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);border-bottom:1px solid var(--line);
+  margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));font-family:var(--f-ui)}
+.bar .in{max-width:720px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.who{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.stat{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stat b{color:var(--ink);font-family:var(--f-mono)}
+.stat.low b{color:var(--bad)}
+.nav{display:grid;grid-template-columns:repeat(15,1fr);gap:4px;width:100%}
+@media (max-width:480px){.nav{grid-template-columns:repeat(10,1fr)}}
+.nav a{height:26px;border-radius:5px;background:var(--bg);border:1px solid var(--line);font-size:11px;display:grid;place-items:center;color:var(--muted);text-decoration:none;font-variant-numeric:tabular-nums;cursor:pointer}
+.nav a.on{background:var(--navy-soft);border-color:var(--navy);color:var(--navy);font-weight:600}
+.nav a.cur{outline:2px solid var(--gold);outline-offset:1px}
+
+.qcard{margin-top:22px;display:grid;gap:14px}
+.qhead{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-ui);font-size:13px}
+.qhead .sec{color:var(--gold);font-weight:600;letter-spacing:.05em;text-transform:uppercase}
+.qhead .pos{color:var(--muted);font-variant-numeric:tabular-nums}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--gold);width:0;transition:width .25s}
+.stem{margin:0;font-family:var(--f-body);font-size:19px;font-weight:600;line-height:1.45;text-wrap:pretty}
+.stem .n{color:var(--navy);margin-right:6px;font-variant-numeric:tabular-nums}
+.extra{display:grid;gap:4px;font-size:16px;background:var(--bg);border-radius:8px;padding:12px 14px}
+.extra p{margin:0}
+.opts{display:grid;gap:8px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:11px 13px;cursor:pointer;min-width:0;background:var(--paper)}
+.opt input{position:absolute;opacity:0;pointer-events:none}
+.opt .l{font-family:var(--f-ui);font-weight:600;font-size:13px;width:26px;height:26px;flex:none;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.opt .t{min-width:0;font-size:16.5px;padding-top:1px}
+.opt:hover{border-color:var(--navy)}
+.opt.sel{border-color:var(--navy);background:var(--navy-soft)}
+.opt.sel .l{background:var(--navy);border-color:var(--navy);color:var(--paper)}
+.qnav{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
+.qnav .btn{min-width:120px}
+
+.finish{margin-top:14px;display:grid;gap:10px;font-family:var(--f-ui);font-size:14px}
+.finish .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.note{font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+
+/* natija */
+.result{display:grid;gap:18px;margin-top:6px}
+.certwrap{container-type:inline-size}
+/* Sertifikat: hujjat sifatida har ikki mavzuda ham oq varaq, o'z ranglari bilan */
+.cert{--cg:#0d5c4b;--ct:#139a78;--co:#f0683a;--cy:#f6c445;--cc:#fbe6a6;--ci:#1d2a27;--cm:#4b5a56;
+  background:#fff;color:var(--ci);border-radius:4px;box-shadow:0 1px 0 var(--line),0 10px 30px rgba(15,30,40,.12);overflow:hidden;
+  display:grid;grid-template-columns:27% 1fr;aspect-ratio:1.414;font-family:"Poppins",var(--f-ui)}
+.cert .art{background:var(--cg);min-height:0}
+.cert .art svg{display:block;width:100%;height:100%}
+.cert .body{padding:5.2cqw 5cqw 4cqw 5cqw;display:flex;flex-direction:column;gap:1.3cqw;min-width:0}
+.cert .org{display:flex;align-items:center;gap:1.4cqw}
+.cert .logo{width:5.2cqw;height:5.2cqw;border-radius:50%;background:var(--cg);display:grid;place-items:center;flex:none}
+.cert .logo svg{width:62%;height:62%;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.cert .org b{display:block;font-size:2.15cqw;font-weight:700;letter-spacing:.02em;line-height:1.2}
+.cert .org span{display:block;font-size:1.55cqw;font-weight:500;color:var(--cm);letter-spacing:.04em;text-transform:uppercase}
+.cert h2{margin:2.2cqw 0 0;font-size:9.4cqw;line-height:.95;font-weight:700;color:var(--cg);letter-spacing:.01em}
+.cert h2.long{font-size:7.6cqw}
+.cert .sub{font-size:3.3cqw;font-weight:600;color:var(--ct);text-transform:uppercase;line-height:1.1}
+.cert .lead{margin-top:1.6cqw;font-size:1.55cqw;font-style:italic;font-weight:500;text-transform:uppercase;letter-spacing:.02em}
+.cert .name{font-size:4.1cqw;font-weight:700;line-height:1.15;border-bottom:.15cqw solid #9aa8a4;padding:1.4cqw 0 .9cqw;overflow-wrap:anywhere;max-width:85%}
+.cert .desc{font-size:1.6cqw;font-style:italic;font-weight:500;text-transform:uppercase;letter-spacing:.02em;line-height:1.55;max-width:88%}
+.cert .chips{display:flex;gap:1cqw;flex-wrap:wrap}
+.cert .chip{background:var(--cg);color:#fff;font-size:2.25cqw;font-weight:600;padding:.5cqw 1.3cqw;text-transform:uppercase;font-variant-numeric:tabular-nums}
+.cert .chip.alt{background:var(--co)}
+.cert .prize{border:.2cqw solid var(--co);background:#fff7ef;padding:1.1cqw 1.4cqw;font-size:1.65cqw;line-height:1.45;font-weight:500;max-width:92%}
+.cert .prize b{color:var(--co);font-weight:700}
+.cert .sign{margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:4cqw;padding-top:1.6cqw}
+.cert .sign div{border-top:.15cqw solid #33413d;padding-top:.8cqw;text-align:center;font-size:1.55cqw;font-weight:700;text-transform:uppercase;line-height:1.35}
+.cert .sign i{display:block;font-weight:600;color:var(--cm)}
+@container (max-width:540px){
+  .cert .body{padding:20px 18px 18px;gap:7px}
+  .cert .org b{font-size:12px}.cert .org span{font-size:9px}
+  .cert .logo{width:30px;height:30px}
+  .cert h2{font-size:34px;margin-top:8px}.cert h2.long{font-size:27px}
+  .cert .sub{font-size:13px}
+  .cert .lead,.cert .desc{font-size:9.5px}
+  .cert .name{font-size:20px;max-width:100%}
+  .cert .desc,.cert .prize{max-width:100%}
+  .cert .chip{font-size:11px;padding:3px 8px}
+  .cert .prize{font-size:10.5px;padding:7px 9px;border-width:1.5px}
+  .cert .sign{gap:16px}.cert .sign div{font-size:9px}
+}
+@container (max-width:400px){.cert{grid-template-columns:15% 1fr;aspect-ratio:auto}}
+.prizeact{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-color:var(--gold);background:var(--gold-soft)}
+.prizeact p{margin:0;font-family:var(--f-ui);font-size:14px;max-width:46ch}
+.prizeact b{font-family:var(--f-display);font-size:18px;display:block}
+
+.chart{display:grid;gap:14px}
+.chart h3,.answers h3{margin:0;font-family:var(--f-ui);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+.brow{display:grid;grid-template-columns:110px 1fr 92px;gap:10px;align-items:center;font-family:var(--f-ui);font-size:14px;font-variant-numeric:tabular-nums}
+@media (max-width:480px){.brow{grid-template-columns:84px 1fr 76px;font-size:13px}}
+.track{height:22px;background:var(--bg);border:1px solid var(--line);border-radius:5px;overflow:hidden;position:relative}
+.fill{height:100%;background:var(--navy);border-radius:4px 0 0 4px;width:0;transition:width .6s ease-out}
+.track span{position:absolute;inset:0 8px;display:flex;align-items:center;font-size:12px;color:var(--muted)}
+.brow .v{text-align:right}
+.brow .v b{color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.fill,.progress i{transition:none}}
+
+.grid30{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;font-family:var(--f-ui);font-size:12px}
+.grid30 span{border-radius:5px;padding:5px 0;text-align:center;font-variant-numeric:tabular-nums;border:1px solid var(--line)}
+.grid30 .y{background:color-mix(in srgb,var(--ok) 16%,transparent);border-color:var(--ok);color:var(--ok)}
+.grid30 .x{background:color-mix(in srgb,var(--bad) 12%,transparent);border-color:var(--bad);color:var(--bad)}
+.answers{display:grid;gap:10px}
+.copybox{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;user-select:all;overflow-wrap:anywhere}
+
+.invite{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--navy);color:var(--paper);border-color:var(--navy)}
+.invite p{margin:0;font-family:var(--f-ui);font-size:14px;max-width:44ch;opacity:.92}
+.invite strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;margin-bottom:2px}
+.invite .btn{background:var(--paper);color:var(--navy);border-color:var(--paper)}
+
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;background:var(--ink);color:var(--paper);
+  font-family:var(--f-ui);font-size:14px;line-height:1.4;padding:12px 16px;border-radius:8px;width:max-content;max-width:min(calc(100vw - 32px),460px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.warn{background:var(--gold);color:#fff}
+footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted);text-align:center}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="strip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="toprow">
+      <div class="brand">Jubatkhanov | Huquq</div>
+      <a class="tg" href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg>Telegram kanal</a>
+    </div>
+    <h1>Huquq fanidan namunaviy olimpiada testi</h1>
+    <div class="meta">8–9-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50</div>
+    <div class="scale">
+      <span>1–10: <b>0,9</b> ball</span><span>11–20: <b>1,5</b> ball</span><span>21–30: <b>2,6</b> ball</span>
+    </div>
+  </header>
+
+  <section id="startView" class="auth">
+    <div class="pane form-pane" id="formPane">
+      <h2>Testni boshlash</h2>
+      <p class="note">Sertifikatda chiqadigan familiya va ismingizni yozing.</p>
+      <div class="field start"><label for="fio">Familiya, ism</label><input id="fio" autocomplete="name" placeholder="Masalan: Karimov Aziz"></div>
+      <div class="err" id="startErr"></div>
+      <div><button class="btn" id="startBtn" type="button">Testni boshlash</button></div>
+    </div>
+    <div class="pane rules-pane" id="rulesPane">
+      <h2>Qoidalar</h2>
+      <ul class="rules">
+        <li>Test 30 ta savoldan iborat, vaqt 60 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.</li>
+        <li>Har bir savolda bitta to‘g‘ri javob bor. Testni yakunlash uchun hamma savolga javob berish kerak.</li>
+        <li>Savollar orasida yuqoridagi raqamlar orqali erkin o‘tish va javobni o‘zgartirish mumkin.</li>
+        <li>Testni faqat bir marta yechish mumkin. Sahifa yangilansa, qolgan joyingizdan davom etasiz, vaqt to‘xtamaydi.</li>
+        <li>Test paytida sahifadan chiqib ketish natijada qayd etiladi.</li>
+        <li>Test yakunida natijangiz bo‘yicha sertifikat beriladi.</li>
+      </ul>
+    </div>
+    <div class="overlay" id="overlay">
+      <svg class="ov-art" viewBox="0 0 120 120" aria-hidden="true"><circle cx="120" cy="120" r="78" fill="#139a78"/><circle cx="120" cy="120" r="40" fill="#f6c445"/><circle cx="0" cy="120" r="34" fill="#d9602f"/></svg>
+      <div class="ov-face ov-a">
+        <h3>Xush kelibsiz!</h3>
+        <p>Testni boshlashdan oldin qoidalar bilan tanishib chiqing.</p>
+        <button class="btn line" id="toRules" type="button">Qoidalarni ko‘rish</button>
+      </div>
+      <div class="ov-face ov-b">
+        <h3>Tayyormisiz?</h3>
+        <p>Ismingizni yozing va testni boshlang. Omad!</p>
+        <button class="btn line" id="toForm" type="button">Ismni yozish</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="testView" hidden>
+  <div class="bar"><div class="in">
+    <div class="who" id="who"></div>
+    <div class="stat">Javob: <b id="cnt">0</b>/30</div>
+    <div class="stat" id="tmbox">Qolgan vaqt: <b id="tm">60:00</b></div>
+    <nav class="nav" id="nav" aria-label="Savollar"></nav>
+  </div></div>
+  <div class="wrap">
+    <section class="card qcard" id="qcard" aria-live="polite">
+      <div class="qhead"><span class="sec" id="qsec"></span><span class="pos" id="qpos"></span></div>
+      <div class="progress"><i id="prog"></i></div>
+      <p class="stem" id="qstem"></p>
+      <div class="extra" id="qextra" hidden></div>
+      <div class="opts" id="qopts" role="radiogroup"></div>
+      <div class="qnav">
+        <button class="btn ghost" id="prevBtn" type="button">← Oldingi</button>
+        <button class="btn" id="nextBtn" type="button">Keyingi →</button>
+      </div>
+    </section>
+    <section class="card finish" id="finishBox" hidden>
+      <div id="leftNote"></div>
+      <div class="row" id="finWarn">
+        <span>Yakunlagandan keyin javoblarni o‘zgartirib bo‘lmaydi.</span>
+      </div>
+      <div class="row">
+        <button class="btn" id="gotoMissing" type="button" hidden>Javobsiz savolga o‘tish</button>
+        <button class="btn gold" id="yesBtn" type="button">Ha, yakunlash</button>
+        <button class="btn ghost" id="noBtn" type="button">Davom etish</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="wrap" id="resultView" hidden>
+  <div class="result">
+    <div class="card note" id="again" hidden>Siz bu testni yechib bo‘lgansiz. Testni faqat bir marta yechish mumkin, quyida natijangiz.</div>
+    <div class="certwrap"><section class="cert" id="cert">
+      <div class="art" aria-hidden="true">
+        <svg viewBox="0 0 200 525" preserveAspectRatio="xMidYMid slice">
+          <svg x="0" y="0" width="100" height="105"><rect width="100" height="105" fill="#f6c445"/><circle cx="100" cy="105" r="100" fill="#139a78"/><circle cx="100" cy="105" r="52" fill="#0d5c4b"/></svg>
+          <svg x="100" y="0" width="100" height="105"><rect width="100" height="105" fill="#fbe6a6"/><circle cx="0" cy="0" r="98" fill="#f0683a"/><circle cx="0" cy="0" r="46" fill="#fbe6a6"/></svg>
+          <svg x="0" y="105" width="100" height="105"><rect width="100" height="105" fill="#0d5c4b"/><rect y="12" width="100" height="10" fill="#139a78"/><rect y="34" width="100" height="10" fill="#139a78"/><rect y="56" width="100" height="10" fill="#139a78"/><rect y="78" width="100" height="10" fill="#139a78"/></svg>
+          <svg x="100" y="105" width="100" height="105"><rect width="100" height="105" fill="#139a78"/><circle cx="100" cy="52" r="52" fill="#f0683a"/><circle cx="100" cy="52" r="26" fill="#f6c445"/></svg>
+          <svg x="0" y="210" width="100" height="105"><rect width="100" height="105" fill="#f6c445"/><circle cx="0" cy="105" r="100" fill="#0d5c4b"/><circle cx="0" cy="105" r="50" fill="#139a78"/></svg>
+          <svg x="100" y="210" width="100" height="105"><rect width="100" height="105" fill="#0d5c4b"/><circle cx="50" cy="105" r="50" fill="#fbe6a6"/><rect x="0" y="0" width="100" height="10" fill="#f6c445"/></svg>
+          <svg x="0" y="315" width="100" height="105"><rect width="100" height="105" fill="#f0683a"/><circle cx="100" cy="0" r="100" fill="#fbe6a6"/><circle cx="100" cy="0" r="48" fill="#f6c445"/></svg>
+          <svg x="100" y="315" width="100" height="105"><rect width="100" height="105" fill="#139a78"/><path d="M0 105 L100 0 L100 105Z" fill="#0d5c4b"/><path d="M50 105 L100 52 L100 105Z" fill="#139a78"/></svg>
+          <svg x="0" y="420" width="100" height="105"><rect width="100" height="105" fill="#139a78"/><circle cx="100" cy="105" r="100" fill="#f0683a"/><circle cx="100" cy="105" r="50" fill="#fbe6a6"/></svg>
+          <svg x="100" y="420" width="100" height="105"><rect width="100" height="105" fill="#0d5c4b"/><circle cx="0" cy="105" r="98" fill="#f6c445"/><circle cx="0" cy="105" r="48" fill="#139a78"/></svg>
+        </svg>
+      </div>
+      <div class="body">
+        <div class="org">
+          <div class="logo" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v21M10 26h12M6 9h20"/><path d="M6 9l-4 9a4 4 0 0 0 8 0zM26 9l-4 9a4 4 0 0 0 8 0z"/></svg></div>
+          <div><b>JUBATKHANOV | HUQUQ</b><span>Huquq fanidan olimpiada testi · 8–9-sinflar</span></div>
+        </div>
+        <h2 id="cTitle">SERTIFIKAT</h2>
+        <div class="sub" id="cSub"></div>
+        <div class="lead">Ushbu hujjat taqdim etiladi:</div>
+        <div class="name" id="cName"></div>
+        <div class="desc" id="cDesc"></div>
+        <div class="chips"><span class="chip" id="cScore"></span><span class="chip alt" id="cDate"></span></div>
+        <div class="prize" id="cPrize" hidden></div>
+        <div class="sign">
+          <div>Jubatxanov Hasilbek<i>Test muallifi</i></div>
+          <div>@jubatkhanov_huquq<i>Telegram kanal</i></div>
+        </div>
+      </div>
+    </section></div>
+    <section class="card prizeact" id="prizeAct" hidden>
+      <p><b>Sovg‘angizni oling</b>Sertifikatni skrinshot qilib, Telegramda @jubatkhanovv ga yuboring va 8–11-sinflardan qaysi biri kerakligini yozing.</p>
+      <a class="btn gold" href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv ga yozish</a>
+    </section>
+    <div class="note" id="cFacts" style="margin-top:-8px"></div>
+
+    <section class="card chart">
+      <h3>Bo‘limlar bo‘yicha natija</h3>
+      <div id="bars"></div>
+    </section>
+
+    <section class="card answers">
+      <h3>Savollar bo‘yicha</h3>
+      <div class="note">Yashil — to‘g‘ri, qizil — xato yoki javobsiz</div>
+      <div class="grid30" id="rgrid"></div>
+      <div class="note" style="margin-top:6px">Natijani nusxalab, o‘qituvchiga Telegramda yuboring:</div>
+      <div class="copybox" id="copybox"></div>
+      <div class="finish row" style="margin:0"><button class="btn" id="copyBtn" type="button">Natijani nusxalash</button><span class="note" id="copyMsg"></span></div>
+    </section>
+
+    <section class="card invite">
+      <div><strong>Ko‘proq testlar kanalda</strong><p>Huquq fanidan yangi olimpiada testlari, savollar tahlili va tayyorgarlik materiallari — Telegram kanalda.</p></div>
+      <a class="btn" href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener">Kanalga qo‘shilish</a>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="wrap"><footer>Muallif: Jubatxanov Hasilbek · <a href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener">t.me/jubatkhanov_huquq</a></footer></div>
+
+<script>
+(function(){
+const Q=[
+["Darslikda huquqning vazifalari sifatida ko‘rsatilmagan javobni toping.",null,["Tartibga solish","Qo‘riqlash","Tarbiyalash","Jazolash"]],
+["Atama va uning kelib chiqishi (ma’nosi) noto‘g‘ri berilgan juftlikni toping.",null,["Pretsedent — yunoncha “namuna qoida”","Gipoteza — yunoncha “faraz qilish”","Dispozitsiya — lotincha “joylashuv”","Sanksiya — lotincha “majburiy chora”"]],
+["Monarx maxsus saylov bilan hokimiyatga keladigan noan’anaviy monarxiyaga qaysi davlat misol bo‘ladi?",null,["Qatar","Malayziya","Norvegiya","Vatikan"]],
+["Prezidentlik va parlamentar respublika elementlari aralashgan boshqaruvga ega davlatni toping.",null,["AQSH","Germaniya","Fransiya","Italiya"]],
+["1990-yilda Konstitutsiya loyihasini tayyorlash uchun necha kishidan iborat komissiya tuzilgan?",null,["64 kishi","32 kishi","100 kishi","150 kishi"]],
+["Dunyo tarixidagi dastlabki konstitutsiya qaysi?",null,["1789-yilgi Fransiya Inson va fuqaro huquqlari deklaratsiyasi","1679-yilgi Angliya qonuni","Hammurapi qonunlari","1787-yilgi AQSH konstitutsiyasi"]],
+["“Suverenitet” tushunchasini fanga kim kiritgan?",null,["Jon Lokk","Jan Boden","Sharl Lui de Monteskyo","Hyugo Grotiyus"]],
+["Hokimiyatlar bo‘linishi prinsipida sud hokimiyatini ilk bor alohida tarmoq sifatida ko‘rsatgan olim kim?",null,["Jon Lokk","Arastu","Sharl Lui de Monteskyo","Jan Jak Russo"]],
+["O‘zbek tiliga davlat tili maqomini bergan “Davlat tili to‘g‘risida”gi qonun qachon qabul qilingan?",null,["1989-yil 21-oktyabr","1991-yil 31-avgust","1990-yil 20-iyun","1992-yil 8-dekabr"]],
+["2023-yil 30-apreldagi referendumda ovoz berishda ishtirok etgan fuqarolarning necha foizi yangi tahrirdagi Konstitutsiyani yoqlab ovoz bergan?",null,["65 foiz","85,5 foiz","98,4 foiz","90,21 foiz"]],
+["Jinoyat kodeksining 15-moddasiga ko‘ra jinoyatlar toifalariga kirmaydigan javobni toping.",null,["Ijtimoiy xavfi katta bo‘lmagan jinoyatlar","O‘rtacha og‘ir jinoyatlar","Og‘ir jinoyatlar","O‘ta og‘ir jinoyatlar"]],
+["Ma’muriy qamoq qanday muddatga qo‘llaniladi?",null,["1 sutkadan 10 sutkagacha, ayrim hollarda 15 sutkagacha","5 sutkadan 30 sutkagacha, ayrim hollarda 60 sutkagacha","3 sutkadan 15 sutkagacha, ayrim hollarda 30 sutkagacha","10 sutkadan 45 sutkagacha"]],
+["Jinoyat kodeksiga ko‘ra jinoyat uchun jarima bazaviy hisoblash miqdorining necha baravari miqdorida belgilanadi?",null,["5 baravaridan 600 baravarigacha","1 baravaridan 100 baravarigacha","10 baravaridan 1000 baravarigacha","50 baravaridan 500 baravarigacha"]],
+["Intizomiy jazo qilmish aniqlangan kundan e’tiboran ko‘pi bilan qancha muddatda qo‘llaniladi va uning amal qilish muddati qancha?",null,["Bir hafta ichida; olti oy","Uch oy ichida; ikki yil","Bir yil ichida; bir oy","Bir oy ichida; bir yil"]],
+["Voyaga yetmagan gumon qilinuvchini so‘roq qilishga ketgan umumiy vaqt (bir soatlik tanaffusdan tashqari) bir kunda qancha vaqtdan oshmasligi kerak?",null,["4 soat","6 soat","8 soat","2 soat"]],
+["Konstitutsiyaning 27-moddasiga ko‘ra shaxs sudning qarorisiz ko‘pi bilan qancha muddat ushlab turilishi mumkin?",null,["48 soat","24 soat","72 soat","10 sutka"]],
+["Ombudsman instituti birinchi marta qachon va qayerda tashkil etilgan?",null,["1787-yilda AQSHda","1945-yilda Buyuk Britaniyada","1809-yilda Shvetsiyada","1789-yilda Fransiyada"]],
+["2023-yil 30-aprelgacha 1992-yilgi Konstitutsiyaga necha marta o‘zgartirish va qo‘shimchalar kiritilgan?",null,["6 marta","11 marta","27 marta","16 marta"]],
+["O‘zbekistonda prezident lavozimi qachon joriy qilingan?",null,["1991-yil 31-avgust","1990-yil 24-mart","1991-yil 29-dekabr","1992-yil 8-dekabr"]],
+["Qonunchilik palatasi Prezident taqdim etgan Bosh vazir nomzodini taqdimnoma kiritilgan kundan e’tiboran necha kun ichida ko‘rib chiqadi?",null,["3 kun","30 kun","10 kun","60 kun"]],
+["Fuqarolik kodeksiga ko‘ra quyidagi fikrlardan qaysilari to‘g‘ri?",["1) fuqaroning huquq layoqati u tug‘ilgan paytdan vujudga keladi;","2) 14 yoshdan 18 yoshgacha bo‘lganlar mayda maishiy bitimlarni ota-onasining roziligisiz tuza oladi;","3) nikoh tuzish natijasida olingan to‘la muomala layoqati nikoh 18 yoshga to‘lmasdan bekor qilinsa, yo‘qoladi;","4) emansipatsiya qilingan voyaga yetmagan shaxs vasiy yoki homiy bo‘la olmaydi."],["1; 2; 3","1; 2; 4","2; 3; 4","1; 4"]],
+["Ayb shakllarini vaziyatlar bilan to‘g‘ri moslashtiring.",["(a) qurilishda elektr ustasi elektr uzatkichni o‘chirishni unutib qo‘ydi va boshqa ustalar tok urishidan zarar ko‘rdi;","(b) o‘quvchi sinfda hech kim yo‘qligidan foydalanib o‘qituvchining sumkasidagi pul va telefonni oldi;","(v) Nodira o‘ziga ortiqcha ishonib, sariq chiroqda to‘xtamasdan chorrahadan o‘tdi va avtohalokatga sabab bo‘ldi;","(g) Sindor tovuqlarni yo‘q qilish uchun suvga kimyoviy modda soldi, qo‘shni bolalar shu suvdan ichayotganini ko‘rib ham ogohlantirmadi.","1) to‘g‘ri qasd; 2) egri qasd; 3) o‘z-o‘ziga ishonish; 4) beparvolik"],["(a)- 3; (b)- 1; (v)- 4; (g)- 2","(a)- 4; (b)- 2; (v)- 3; (g)- 1","(a)- 3; (b)- 2; (v)- 4; (g)- 1","(a)- 4; (b)- 1; (v)- 3; (g)- 2"]],
+["O‘zbekiston Respublikasi Konstitutsiyasi qaysi belgilar to‘plamiga to‘liq mos keladi?",null,["yozilgan, hadya qilingan, “yumshoq”, respublika, unitar","yozilgan, xalq tomonidan qabul qilingan, “yumshoq”, respublika, unitar","yozilgan, xalq tomonidan qabul qilingan, “qattiq”, respublika, unitar","yozilmagan, xalq tomonidan qabul qilingan, “qattiq”, respublika, federal"]],
+["Ifodaning qiymatini toping: (Qonunchilik palatasi deputatlari soni) − (Senat a’zolari soni) + (Prezidentlikka nomzodning eng kam yoshi).",null,["120","110","125","130"]],
+["Quyidagilardan qaysi biri Oliy Majlis palatalarini tarqatib yuborish asosi bo‘la olmaydi?",null,["palata bir necha marta Konstitutsiyaga zid qarorlar qabul qilgan bo‘lsa","Qonunchilik palatasi Bosh vazir nomzodini uch marta rad etgan bo‘lsa","palata a’zolarining kamida uchdan ikki qismi o‘zini o‘zi tarqatib yuborish uchun ovoz bergan bo‘lsa","palatalar Prezident e’tiroz bilan qaytargan qonunni avvalgi tahrirda qayta ma’qullagan bo‘lsa"]],
+["Fuqaroligi bo‘lmagan shaxs yashash guvohnomasini olganiga 5 yil bo‘ldi, ammo oxirgi bir yilda jami 200 kun O‘zbekistondan tashqarida bo‘lgan. U fuqarolikka umumiy tartibda qabul qilish talabiga javob beradimi?",null,["ha, chunki 5 yillik muddat to‘lgan","yo‘q, chunki bir yilda 183 kundan ko‘p tashqarida bo‘lgani uchun yashash muddati uzluksiz hisoblanmaydi","ha, agar davlat tilini bilsa, xorijda bo‘lgan kunlar hisobga olinmaydi","yo‘q, chunki umumiy tartibda kamida 10 yil yashash talab qilinadi"]],
+["16 yoshli o‘quvchi o‘quv yili davomida ishni o‘qish bilan birga olib bormoqda. Besh kunlik ish haftasida uning bir kunlik ish vaqti eng ko‘pi bilan qancha bo‘lishi mumkin?",null,["3 soat","7 soat 30 daqiqa","4 soat","2 soat 30 daqiqa"]],
+["20 yoshli fuqaroga xorijga chiqish biometrik pasporti va ID-karta qancha muddatga beriladi?",null,["pasport 5 yilga, ID-karta 10 yilga","pasport 10 yilga, ID-karta 10 yilga","pasport 5 yilga, ID-karta 5 yilga","pasport 10 yilga, ID-karta 5 yilga"]],
+["Voyaga yetmaganligida tug‘ilishi yoki ota-onasining fuqaroligi bo‘yicha xorijiy davlat fuqaroligini olgan shaxs necha yoshga to‘lganida undan rasman chiqmasa, O‘zbekiston fuqaroligini yo‘qotishi mumkin?",null,["18 yosh","16 yosh","25 yosh","21 yosh"]],
+["Vasiylik va homiylik belgilanadigan holatlarni to‘g‘ri moslashtiring.",["1) 14 yoshga to‘lmagan yetim bola;","2) 14 yoshdan 18 yoshgacha bo‘lgan, ota-ona qaramog‘idan mahrum bola;","3) sud muomalaga layoqatsiz deb topgan fuqaro;","4) sud muomala layoqatini cheklagan fuqaro."],["vasiylik — 1; 2; homiylik — 3; 4","vasiylik — 1; 3; homiylik — 2; 4","vasiylik — 1; 4; homiylik — 2; 3","vasiylik — 3; homiylik — 1; 2; 4"]]
+];
+const K="FDFDCCFDCCFDCCFDCCFDDCCFFECFFE".split("").map((c,i)=>(c.charCodeAt(0)-67+4-(i%4)+4)%4);
+const PTS=[0.9,1.5,2.6];
+const SEC=["I bo‘lim · Oson","II bo‘lim · O‘rtacha","III bo‘lim · Qiyin"];
+const L=["A","B","C","D"];
+const fmt=n=>(Math.round(n*10)/10).toString().replace(".",",");
+const $=id=>document.getElementById(id);
+const SKEY="huquq89-olimpiada-v1";
+const LIMIT=60*60;
+const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
+let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[];
+const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned}))}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
+let toastT=0;
+function toast(msg,kind){const t=$("toast");t.textContent=msg;t.className="toast"+(kind?" "+kind:"");t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,6000)}
+
+function buildNav(){
+  const nav=$("nav");
+  for(let i=0;i<30;i++){const a=document.createElement("a");a.href="#";a.textContent=i+1;a.id="d"+i;a.setAttribute("aria-label",(i+1)+"-savol");
+    a.addEventListener("click",e=>{e.preventDefault();show(i)});nav.appendChild(a)}
+}
+function show(i){
+  cur=i;const q=Q[i],s=Math.floor(i/10);
+  $("finishBox").hidden=true;$("qcard").hidden=false;
+  $("qsec").textContent=SEC[s]+" · "+fmt(PTS[s])+" ball";
+  $("qpos").textContent=(i+1)+" / 30";
+  $("prog").style.width=((i+1)/30*100)+"%";
+  const st=$("qstem");st.textContent="";const n=document.createElement("span");n.className="n";n.textContent=(i+1)+".";st.append(n,document.createTextNode(q[0]));
+  const ex=$("qextra");ex.textContent="";
+  if(q[1]){q[1].forEach(t=>{const p=document.createElement("p");p.textContent=t;ex.appendChild(p)});ex.hidden=false}else ex.hidden=true;
+  const o=$("qopts");o.textContent="";
+  q[2].forEach((t,j)=>{
+    const lab=document.createElement("label");lab.className="opt"+(ans[i]===j?" sel":"");
+    const inp=document.createElement("input");inp.type="radio";inp.name="q"+i;inp.id="o"+i+"_"+j;inp.checked=ans[i]===j;
+    inp.addEventListener("change",()=>pick(j));
+    const l=document.createElement("span");l.className="l";l.textContent=L[j];
+    const tx=document.createElement("span");tx.className="t";tx.textContent=t;
+    lab.append(inp,l,tx);o.appendChild(lab);
+  });
+  $("prevBtn").disabled=i===0;
+  $("nextBtn").textContent=i===29?"Testni yakunlash":"Keyingi →";
+  document.querySelectorAll(".nav a").forEach((a,k)=>a.classList.toggle("cur",k===i));
+  window.scrollTo({top:0});save();
+}
+function pick(j){
+  if(done)return;ans[cur]=j;
+  document.querySelectorAll("#qopts .opt").forEach((el,k)=>el.classList.toggle("sel",k===j));
+  $("d"+cur).classList.add("on");
+  $("cnt").textContent=ans.filter(a=>a!==null).length;save();
+}
+function missing(){return ans.map((a,i)=>a===null?i:null).filter(i=>i!==null)}
+function askFinish(){
+  const miss=missing();
+  if(miss.length){
+    $("leftNote").textContent="Testni yakunlash uchun hamma savolga javob bering. Javob berilmagan savollar ("+miss.length+" ta): "+miss.map(i=>i+1).join(", ");
+    $("finWarn").hidden=true;$("yesBtn").hidden=true;$("gotoMissing").hidden=false;
+  }else{
+    $("leftNote").textContent="Hamma savolga javob berdingiz.";
+    $("finWarn").hidden=false;$("yesBtn").hidden=false;$("gotoMissing").hidden=true;
+  }
+  $("finishBox").hidden=false;$("finishBox").scrollIntoView({block:"center"});
+}
+function tick(){
+  const left=LIMIT-spent();$("tm").textContent=mmss(left);$("tmbox").classList.toggle("low",left<=300);
+  let msg=null;WARN.forEach(([th,m])=>{if(left<=th&&!warned.includes(th)){warned.push(th);msg=m}});
+  if(msg&&left>0){toast(msg,left<=300?"warn":"");save()}
+  if(left<=0&&!done){timeUp=true;finish()}
+}
+function enterTest(){
+  started=true;$("startView").hidden=true;$("testView").hidden=false;
+  document.querySelector("header.top").hidden=true;$("who").textContent=name;
+  ans.forEach((a,i)=>{if(a!==null)$("d"+i).classList.add("on")});
+  $("cnt").textContent=ans.filter(a=>a!==null).length;
+  timer=setInterval(tick,1000);tick();if(!done)show(cur);
+}
+$("startBtn").addEventListener("click",()=>{
+  const raw=$("fio").value.trim().replace(/\s+/g," ");
+  const words=raw.split(" ").filter(w=>w.replace(/[^\p{L}]/gu,"").length>=2);
+  if(words.length<2){$("startErr").textContent="Familiya va ismingizni to‘liq yozing (masalan: Karimov Aziz).";$("fio").focus();return}
+  $("startErr").textContent="";name=raw;t0=Date.now();cur=0;save();enterTest();
+});
+function flip(on){$("startView").classList.toggle("flip",on);
+  const wide=matchMedia("(min-width:641px)").matches;
+  $("formPane").inert=on&&wide;$("rulesPane").inert=!on&&wide;
+  (on?$("toForm"):$("fio")).focus({preventScroll:true})}
+$("toRules").addEventListener("click",()=>flip(true));
+$("toForm").addEventListener("click",()=>flip(false));
+$("rulesPane").inert=matchMedia("(min-width:641px)").matches;
+$("fio").addEventListener("keydown",e=>{if(e.key==="Enter")$("startBtn").click()});
+$("prevBtn").addEventListener("click",()=>{if(cur>0)show(cur-1)});
+$("nextBtn").addEventListener("click",()=>{if(cur<29)show(cur+1);else askFinish()});
+$("noBtn").addEventListener("click",()=>{$("finishBox").hidden=true});
+$("gotoMissing").addEventListener("click",()=>{const m=missing();if(m.length)show(m[0])});
+$("yesBtn").addEventListener("click",()=>{if(!missing().length)finish()});
+document.addEventListener("visibilitychange",()=>{
+  if(!started||done)return;
+  if(document.hidden){leaves++;save()}
+  else toast("Siz test sahifasidan chiqib ketdingiz ("+leaves+"-marta). Bu natijada qayd etiladi.","warn");
+});
+
+function finish(){
+  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();renderResult(false);
+}
+function renderResult(again){
+  const time=mmss(spent());
+  const sec=[0,0,0];let total=0;const g=$("rgrid");g.textContent="";
+  ans.forEach((a,i)=>{const ok=a===K[i],s=Math.floor(i/10);if(ok){sec[s]++;total+=PTS[s]}
+    const sp=document.createElement("span");sp.className=ok?"y":"x";sp.textContent=i+1;g.appendChild(sp)});
+  const corr=sec[0]+sec[1]+sec[2];
+  const d=new Date(endAt||Date.now());const date=String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
+  const t10=sec[0]*9+sec[1]*15+sec[2]*26;const special=t10>430;
+  $("again").hidden=!again;
+  $("cName").textContent=name;
+  $("cTitle").textContent=special?"SERTIFIKAT":"TASHAKKURNOMA";$("cTitle").classList.toggle("long",!special);
+  $("cSub").textContent=special?"Yuqori natija uchun":"Olimpiadada ishtirok etgani uchun";
+  $("cDesc").textContent=special
+    ?"Huquq fanidan namunaviy olimpiada testida 50 balldan "+fmt(total)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
+    :"Huquq fanidan namunaviy olimpiada testida faol ishtirok etib, 50 balldan "+fmt(total)+" ball to‘plagani uchun tashakkur bildiriladi.";
+  $("cScore").textContent="Ball: "+fmt(total)+" / 50";$("cDate").textContent=date;
+  const pz=$("cPrize");pz.hidden=!special;pz.textContent="";
+  if(special){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
+  $("prizeAct").hidden=!special;
+  $("cFacts").textContent="To‘g‘ri javoblar: "+corr+" / 30 · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
+  const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
+  sec.forEach((c,k)=>{
+    const row=document.createElement("div");row.className="brow";
+    const lb=document.createElement("div");lb.textContent=names[k]+" ("+fmt(PTS[k])+")";
+    const tr=document.createElement("div");tr.className="track";
+    const f=document.createElement("div");f.className="fill";tr.appendChild(f);fills.push([f,c*10]);
+    const lab=document.createElement("span");lab.textContent=c+"/10";if(c>=4){lab.style.color="var(--paper)"}tr.appendChild(lab);
+    const v=document.createElement("div");v.className="v";const b=document.createElement("b");b.textContent=fmt(c*PTS[k]);v.append(b,document.createTextNode(" / "+fmt(10*PTS[k])));
+    row.append(lb,tr,v);bars.appendChild(row);
+  });
+  const line=ans.map((a,i)=>(i+1)+(a===null?"-":L[a])).join(" ");
+  $("copybox").textContent="Huquq olimpiadasi (8–9-sinf)\n"+name+"\nBall: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10\nSarflangan vaqt: "+time+" / 60:00"+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
+  $("startView").hidden=true;$("testView").hidden=true;$("resultView").hidden=false;document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
+}
+$("copyBtn").addEventListener("click",()=>{
+  const txt=$("copybox").textContent;
+  const sel=()=>{const r=document.createRange();r.selectNodeContents($("copybox"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyMsg").textContent="Matn belgilandi — nusxalang."};
+  try{navigator.clipboard.writeText(txt).then(()=>$("copyMsg").textContent="Nusxalandi.",sel)}catch(e){sel()}
+});
+buildNav();
+(function boot(){
+  const st=load();if(!st||!st.name||!st.t0)return;
+  name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
+  done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];
+  if(done){started=true;renderResult(true);return}
+  if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
+  enterTest();toast("Test qolgan joyidan davom ettirildi. Vaqt to‘xtamagan.");
+})();
+})();
+</script>
+
+</body>
+</html>
