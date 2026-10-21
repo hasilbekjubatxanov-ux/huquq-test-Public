@@ -447,7 +447,7 @@ const L=["A","B","C","D"];
 const fmt=n=>(Math.round(n*10)/10).toString().replace(".",",");
 const $=id=>document.getElementById(id);
 const SKEY="huquq89-olimpiada-v1";
-const ENDPOINT=""; // Google Apps Script manzili
+const ENDPOINT="https://script.google.com/macros/s/AKfycbyugJIc9g1-4fIJVh9pwrfrw3ZSadvPtiX1OUAaVbGllzv5XtGUIG0n2TQbiCpLZZEC/exec"; // Google Apps Script manzili
 const TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.WebApp:null;
 if(TG){try{TG.ready();TG.expand()}catch(e){}}
 let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
