@@ -640,12 +640,12 @@ function renderResult(again){
     ?"Huquq fanidan namunaviy olimpiada testida 50 balldan "+fmt(total)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
     :"Huquq fanidan namunaviy olimpiada testida faol ishtirok etib, 50 balldan "+fmt(total)+" ball to‘plagani uchun tashakkur bildiriladi.";
   $("cScore").textContent="Ball: "+fmt(total)+" / 50";$("cDate").textContent=date;
-  const pz=$("cPrize");pz.hidden=!special;pz.textContent="";
-  if(special){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
-  $("prizeAct").hidden=!special;
+  const pz=$("cPrize");pz.hidden=true;pz.textContent="";
+  if(false){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
+  $("prizeAct").hidden=true;
   certData={special,name,title:special?"SERTIFIKAT":"TASHAKKURNOMA",sub:special?"Yuqori natija uchun":"Olimpiadada ishtirok etgani uchun",
     desc:$("cDesc").textContent,score:"BALL: "+fmt(total)+" / 50",date,
-    prize:special?"Sovg‘a: 8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring.":""};
+    prize:""};
   $("cFacts").textContent="To‘g‘ri javoblar: "+corr+" / 30 · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
   const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
   sec.forEach((c,k)=>{
