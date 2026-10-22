@@ -218,6 +218,19 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .atable td,.atable th{white-space:nowrap}
 .atable tr.rep td{color:var(--muted);font-style:italic}
 .atable tr.top td:nth-child(3){color:var(--gold);font-weight:700}
+.alist{display:grid;gap:10px}
+.arow2{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--paper)}
+.arow2 .rk{width:34px;height:34px;border-radius:50%;background:var(--navy-soft);color:var(--navy);display:grid;place-items:center;font-family:var(--f-ui);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.arow2 .nm{font-family:var(--f-ui);font-weight:600;font-size:16px;min-width:0;overflow-wrap:anywhere}
+.arow2 .bl{font-family:var(--f-display);font-weight:700;font-size:22px;color:var(--navy);font-variant-numeric:tabular-nums;text-align:right}
+.arow2 .bl small{font-size:13px;color:var(--muted);font-weight:500}
+.arow2 .meta{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:4px 14px;font-family:var(--f-ui);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.arow2 .meta b{color:var(--ink);font-weight:600}
+.arow2.top{border-color:var(--gold);background:var(--gold-soft)}
+.arow2.top .bl{color:var(--gold)}
+.arow2.top .rk{background:var(--gold);color:#fff}
+.arow2.rep{opacity:.65}
+.arow2.rep .nm{font-style:italic}
 .certact{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .modal{position:fixed;inset:0;z-index:30;background:rgba(10,20,18,.6);display:grid;place-items:center;padding:16px}
 .mbox{background:var(--paper);border-radius:12px;padding:18px;display:grid;gap:12px;width:min(100%,720px);max-height:calc(100vh - 32px);overflow:auto;font-family:var(--f-ui)}
@@ -388,10 +401,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <label class="note"><input type="checkbox" id="aAll"> Takroriy urinishlarni ham ko‘rsatish</label>
         <button class="btn ghost" id="aRefresh" type="button">Yangilash</button>
       </div>
-      <div class="atable"><table>
-        <thead><tr><th>#</th><th>Ism</th><th class="r">Ball</th><th class="r">To‘g‘ri</th><th class="r">O / O‘ / Q</th><th class="r">Vaqt</th><th class="r">Chiqish</th><th>Telegram</th><th>Sana</th></tr></thead>
-        <tbody id="aRows"></tbody>
-      </table></div>
+      <div class="alist" id="aRows"></div>
     </div>
   </section>
 </div>
@@ -684,11 +694,21 @@ function renderAdmin(){
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
     const d=document.createElement("div");const b=document.createElement("b");b.textContent=v;d.append(b,document.createTextNode(k));st.appendChild(d)});
-  const tb=$("aRows");tb.textContent="";let rank=0;
-  rows.forEach(r=>{const tr=document.createElement("tr");if(r.takror)tr.className="rep";else{rank++;if(r.ball>43)tr.className="top"}
-    [r.takror?"–":rank,r.ism+(r.takror?" (takroriy)":""),fmt(r.ball),r.togri+"/30",r.oson+" / "+r.orta+" / "+r.qiyin,r.vaqt+(r.tugadi?" ⏱":""),r.chiqish,r.tg,r.sana].forEach((v,i)=>{
-      const td=document.createElement("td");td.textContent=v;if(i>=2&&i<=6)td.className="r";tr.appendChild(td)});tb.appendChild(tr)});
-  if(!rows.length){const tr=document.createElement("tr");const td=document.createElement("td");td.colSpan=9;td.textContent="Hozircha natija yo‘q.";tr.appendChild(td);tb.appendChild(tr)}
+  const box=$("aRows");box.textContent="";let rank=0;
+  const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
+  rows.forEach(r=>{
+    const c=mk("div","arow2"+(r.takror?" rep":(++rank,r.ball>43?" top":"")));
+    c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
+    const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null," / 50"));c.appendChild(bl);
+    const m=mk("div","meta");
+    const sec=Number(r.soniya)||0;
+    m.append(kv("To‘g‘ri",r.togri+"/30"),kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin),kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)));
+    if(r.tg)m.append(kv("Telegram",r.tg));
+    m.append(kv("Sana",r.sana));
+    c.appendChild(m);box.appendChild(c);
+  });
+  if(!rows.length)box.appendChild(mk("div","note","Hozircha natija yo‘q."));
 }
 $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
