@@ -710,7 +710,6 @@ function renderAdmin(){
     const m=mk("div","meta");
     const sec=Number(r.soniya)||0;
     m.append(kv("To‘g‘ri",r.togri+"/30"),kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin),kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)));
-    if(r.tg)m.append(kv("Telegram",r.tg));
     m.append(kv("Sana",r.sana));
     c.appendChild(m);box.appendChild(c);
   });
