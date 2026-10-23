@@ -98,6 +98,22 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .pdone h2{margin:0;font-family:var(--f-display);font-size:24px;color:var(--navy)}
 .pdone p{margin:0;font-family:var(--f-ui);color:var(--muted)}
 .pdone .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.fb{display:grid;gap:12px;margin-top:22px}
+.fb h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--navy)}
+.fb .note{margin:0;font-size:14px}
+.fb textarea{font:inherit;font-size:16px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;resize:vertical;min-height:140px}
+.fb textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.fbchips{display:flex;gap:6px;flex-wrap:wrap}
+.fbchips button{font-family:var(--f-ui);font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
+.fbchips button:hover{border-color:var(--navy);color:var(--navy)}
+.fbcount{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+.fbcount .ok{color:var(--ok);font-weight:600}
+.afb{display:grid;gap:10px}
+.afb h3{margin:0;font-family:var(--f-ui);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+.afb .it{border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:4px}
+.afb .it .who{font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+.afb .it .who b{color:var(--ink)}
+.afb .it p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .pend{display:grid;gap:12px;justify-items:start;margin-top:22px}
 .pend p{margin:0;font-family:var(--f-ui)}
 .acodes{display:grid;gap:10px}
@@ -501,6 +517,17 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   </section>
 </div>
 
+<div class="wrap" id="fbView" hidden>
+  <section class="card fb">
+    <h2>Test haqida fikringiz</h2>
+    <p class="note">Natijangizni ko‘rishdan oldin test haqida fikr bildiring: savollar qanday edi, nima yoqdi, nimani yaxshilash kerak. Fikringiz testlarni yaxshilashga yordam beradi.</p>
+    <div class="fbchips" id="fbChips"></div>
+    <textarea id="fbText" rows="6" maxlength="1500" placeholder="Fikringizni shu yerga yozing…"></textarea>
+    <div class="fbcount"><span id="fbCount">0 / 50 harf</span><span class="err" id="fbErr"></span></div>
+    <div><button class="btn" id="fbSend" type="button" disabled>Fikrni yuborish va natijani ko‘rish</button></div>
+  </section>
+</div>
+
 <div class="wrap" id="pendView" hidden>
   <section class="card pend">
     <p id="pendMsg">Natija hisoblanmoqda…</p>
@@ -600,6 +627,11 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <button class="btn ghost" id="aRefresh" type="button">Yangilash</button>
       </div>
       <div class="alist" id="aRows"></div>
+      <section class="card afb" id="aFb" hidden>
+        <h3>O‘quvchilar fikrlari</h3>
+        <div class="note" id="aFbMsg"></div>
+        <div id="aFbList" class="afb"></div>
+      </section>
       <section class="card acodes" id="aCodes" hidden>
         <h3>Kodlar</h3>
         <div class="astats" id="cStats"></div>
@@ -699,11 +731,12 @@ if(TG){try{TG.ready();TG.expand()}catch(e){}}
 let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
 const LIMIT=60*60;
 const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
+let fbNeed=false,fb=""; // test tugagach natijadan oldin majburiy fikr
 let flags=new Array(30).fill(false),strikes=Array.from({length:30},()=>[]);
 let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[],sent=false;
 const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
-function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes}))}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes,fbNeed,fb}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 // Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
 let paid={};
@@ -839,16 +872,44 @@ document.addEventListener("visibilitychange",()=>{
 });
 
 function finish(){
-  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();
-  if(T.paid){finishPaid(false);return}
-  renderResult(false);send();
+  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);fbNeed=true;save();
+  if(!fb){showFeedback();return}
+  afterFeedback(false);
 }
+function afterFeedback(again){
+  $("fbView").hidden=true;
+  if(T.paid){finishPaid(again);return}
+  renderResult(again);send();
+}
+// Fikr: kamida FB_MIN ta harf (bo'sh joy, raqam va belgilar hisobga olinmaydi)
+const FB_MIN=50;
+const fbLetters=t=>(t.match(/\p{L}/gu)||[]).length;
+function showFeedback(){
+  $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("fbView").hidden=false;
+  document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
+  const ch=$("fbChips");if(!ch.children.length)["Savollar qiyin edi","Savollar oson edi","Vaqt yetarli edi","Vaqt yetmadi","Savollar qiziq edi","Interfeys qulay"].forEach(t=>{
+    const b=document.createElement("button");b.type="button";b.textContent=t;
+    b.addEventListener("click",()=>{const ta=$("fbText");ta.value=(ta.value.trim()?ta.value.trim()+". ":"")+t;fbUpdate();ta.focus()});ch.appendChild(b)});
+  fbUpdate();
+}
+function fbUpdate(){
+  const n=fbLetters($("fbText").value),ok=n>=FB_MIN;
+  $("fbCount").textContent=ok?"✓ "+n+" harf — yetarli":n+" / "+FB_MIN+" harf";$("fbCount").className=ok?"ok":"";
+  $("fbSend").disabled=!ok;$("fbErr").textContent="";
+}
+$("fbText").addEventListener("input",fbUpdate);
+$("fbSend").addEventListener("click",()=>{
+  const t=$("fbText").value.trim().replace(/\s+/g," ");
+  if(fbLetters(t)<FB_MIN){fbUpdate();return}
+  if(t.split(" ").filter(w=>fbLetters(w)>=2).length<5){$("fbErr").textContent="Iltimos, fikringizni bir necha so‘z bilan to‘liqroq yozing.";return}
+  fb=t.slice(0,1500);save();afterFeedback(false);
+});
 // Pullik test: ball serverda hisoblanadi, kalit va tahlil shundan keyin keladi
 function finishPaid(again){
   $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("pendView").hidden=false;
   document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;
   $("pendMsg").textContent="Natija hisoblanmoqda…";$("pendRetry").hidden=true;
-  fetch(ENDPOINT+"?"+qs({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0}))
+  fetch(ENDPOINT+"?"+qs({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0,fb}))
     .then(r=>r.json()).then(d=>{
       if(!d.ok||!d.key)throw new Error(d.error||"xato");
       paid.key=d.key;paid.tahlil=d.tahlil;savePaid();applyPaid();sent=true;save();
@@ -860,7 +921,7 @@ function send(){
   if(!ENDPOINT||sent||T.paid)return;
   const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
   const payload={test:TID||"asosiy",name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
-    tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId};
+    tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId,feedback:fb};
   fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
     .then(()=>{sent=true;save()}).catch(()=>{});
 }
@@ -1085,6 +1146,7 @@ function loadAdmin(){
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
     $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism));renderAdmin();
     $("aCodes").hidden=!TESTS[adminTest].paid;if(TESTS[adminTest].paid)loadCodes();
+    loadFeedback();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
 let adminRows=[];
@@ -1122,6 +1184,18 @@ function renderAdmin(){
     box.appendChild(c);
   });
   if(!rows.length)box.appendChild(mk("div","note","Hozircha natija yo‘q."));
+}
+function loadFeedback(){
+  const box=$("aFbList");box.textContent="";$("aFb").hidden=false;$("aFbMsg").textContent="Fikrlar yuklanmoqda…";
+  fetch(ENDPOINT+"?"+qs({action:"feedback",key:$("aPass").value,test:adminTest})).then(r=>r.json()).then(d=>{
+    if(!Array.isArray(d.items)){$("aFbMsg").textContent="Fikrlarni olib bo‘lmadi. Google skript yangilanganini tekshiring.";return}
+    const items=d.items.filter(f=>!hidden(f.ism));
+    $("aFbMsg").textContent=items.length?items.length+" ta fikr, eng yangilari tepada.":"Hozircha fikr yo‘q.";
+    items.forEach(f=>{const it=document.createElement("div");it.className="it";
+      const w=document.createElement("div");w.className="who";const b=document.createElement("b");b.textContent=f.ism;
+      w.append(b,document.createTextNode((f.ball!==""&&f.ball!=null?" · "+fmt(Number(f.ball))+" ball":"")+" · "+f.sana));
+      const p=document.createElement("p");p.textContent=f.fikr;it.append(w,p);box.appendChild(it)});
+  }).catch(()=>{$("aFbMsg").textContent="Ulanib bo‘lmadi."});
 }
 function loadCodes(){
   const pw=$("aPass").value;$("cMsg").textContent="Kodlar yuklanmoqda…";
@@ -1187,9 +1261,10 @@ if(location.hash==="#admin"){
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
   if(Array.isArray(st.flags)&&st.flags.length===30)flags=st.flags;
+  fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";
   if(Array.isArray(st.strikes)&&st.strikes.length===30)strikes=st.strikes.map(a=>Array.isArray(a)?a:[]);
   if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
-  if(done){started=true;if(T.paid&&!paid.key)finishPaid(true);else{renderResult(true);send()}return}
+  if(done){started=true;if(fbNeed&&!fb){showFeedback();return}if(T.paid&&!paid.key)finishPaid(true);else{renderResult(true);send()}return}
   if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
   enterTest();toast("Test qolgan joyidan davom ettirildi. Vaqt to‘xtamagan.");
 })();

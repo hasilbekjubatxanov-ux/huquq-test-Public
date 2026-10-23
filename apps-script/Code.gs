@@ -21,6 +21,8 @@ const USTUNLAR = ["Sana", "Ism", "Ball", "To‘g‘ri", "Oson", "O‘rtacha", "Q
   "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod"];
 const KOD_VARAQ = "Kodlar";
 const KOD_USTUNLAR = ["Kod", "Holat", "Ism", "Telegram", "Telegram ID", "Qurilma", "Boshlangan", "Tugagan", "Ball", "Javoblar"];
+const FIKR_VARAQ = "Fikrlar";
+const FIKR_USTUNLAR = ["Sana", "Test", "Ism", "Ball", "Fikr", "Kod", "Telegram", "Qurilma"];
 const KOD_HARFLAR = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 0/O va 1/I adashmasligi uchun yo'q
 
 function testId_(id) {
@@ -41,6 +43,14 @@ function varaq_(nom, ustunlar) {
 }
 function natijaVaraq_(id) { return varaq_(TESTLAR[id].varaq, USTUNLAR); }
 function kodVaraq_() { return varaq_(KOD_VARAQ, KOD_USTUNLAR); }
+function fikrVaraq_() { return varaq_(FIKR_VARAQ, FIKR_USTUNLAR); }
+
+// O'quvchining test haqidagi fikri (natijadan oldin majburiy)
+function fikrYoz_(id, ism, ball, fikr, kod, tg, device) {
+  const t = String(fikr || "").trim();
+  if (!t) return;
+  fikrVaraq_().appendRow([new Date(), id, matn_(ism, 100), ball, matn_(t, 1500), kod ? kodKorinish_(kod) : "", matn_(tg, 100), matn_(device, 40)]);
+}
 
 function hisobla_(id, javoblar) {
   const k = TESTLAR[id].kalit, b = [0, 0, 0], xato = [];
@@ -87,7 +97,8 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    natijaYoz_(id, d, javoblar_(d.answers), Math.min(LIMIT, Number(d.seconds) || 0), "");
+    const h = natijaYoz_(id, d, javoblar_(d.answers), Math.min(LIMIT, Number(d.seconds) || 0), "");
+    fikrYoz_(id, d.name, h.ball, d.feedback, "", d.tg, d.device);
   } finally {
     lock.releaseLock();
   }
@@ -100,6 +111,7 @@ function doGet(e) {
   if (p.action === "finish") return json_(qulf_(function () { return tugatish_(p); }));
   if (p.key !== ADMIN_PAROL) return json_({ error: "parol" });
   if (p.action === "codes") return json_(kodlar_());
+  if (p.action === "feedback") return json_(fikrlar_(testId_(p.test)));
   if (p.action === "gen") return json_(qulf_(function () { return kodYarat_(Number(p.n) || 10); }));
   return json_(reyting_(testId_(p.test)));
 }
@@ -153,6 +165,7 @@ function tugatish_(p) {
     const soniya = Math.min(LIMIT, Math.max(0, Math.floor((Date.now() - boshlangan) / 1000)));
     h = natijaYoz_("pro", { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves,
       timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod);
+    fikrYoz_("pro", k.v[2], h.ball, p.fb, kod, k.v[3], device);
     k.sh.getRange(k.row, 2).setValue("tugagan");
     k.sh.getRange(k.row, 8, 1, 3).setValues([[new Date(), h.ball, javoblar]]);
   } else {
@@ -183,6 +196,15 @@ function kodlar_() {
   return { codes: v.filter(function (r) { return r[0]; }).map(function (r) {
     return { kod: String(r[0]), holat: String(r[1]), ism: String(r[2]).replace(/^'/, ""), ball: r[8] === "" ? null : Number(r[8]),
       sana: r[6] instanceof Date ? Utilities.formatDate(r[6], tz, "dd.MM.yyyy HH:mm") : "" };
+  }) };
+}
+
+function fikrlar_(id) {
+  const tz = Session.getScriptTimeZone();
+  const v = fikrVaraq_().getDataRange().getValues().slice(1).filter(function (r) { return String(r[1]) === id; });
+  return { items: v.reverse().map(function (r) {
+    return { ism: String(r[2]).replace(/^'/, ""), ball: r[3], fikr: String(r[4]).replace(/^'/, ""),
+      sana: r[0] instanceof Date ? Utilities.formatDate(r[0], tz, "dd.MM.yyyy HH:mm") : String(r[0]) };
   }) };
 }
 
