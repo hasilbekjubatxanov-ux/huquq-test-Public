@@ -69,6 +69,13 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .tcard .tag.done{border-color:var(--ok);color:var(--ok)}
 .tcard .btn{justify-self:start;margin-top:4px}
 .tcard.pro .btn{background:var(--gold);border-color:var(--gold)}
+.tcard.closed{border-left-color:var(--line);background:var(--bg);cursor:default}
+.tcard.closed .tt{color:var(--muted)}
+.tcard.closed .btn{background:var(--line);border-color:var(--line);color:var(--muted)}
+.locked{display:grid;gap:10px;justify-items:start}
+.locked h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--navy)}
+.locked p{margin:0}
+.locked .lk{font-size:34px;line-height:1}
 .atabs{display:flex;gap:8px;flex-wrap:wrap}
 .atabs button[aria-pressed="true"]{background:var(--navy);color:var(--paper)}
 .arow2 .wr{grid-column:1 / -1;font-family:var(--f-ui);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
@@ -332,6 +339,13 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <span>1–10: <b>0,9</b> ball</span><span>11–20: <b>1,5</b> ball</span><span>21–30: <b>2,6</b> ball</span>
     </div>
   </header>
+
+  <section id="lockedView" class="card locked" hidden>
+    <div class="lk" aria-hidden="true">🔒</div>
+    <h2>Bu test yopilgan</h2>
+    <p class="note">Hozircha bu testni yechib bo‘lmaydi. Boshqa testlarni bosh sahifada ko‘ring.</p>
+    <a class="btn" href="./">Barcha testlar</a>
+  </section>
 
   <section id="homeView" class="home" hidden>
     <div class="tlist" id="tlist"></div>
@@ -613,6 +627,7 @@ const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-U
 const TESTS={
   asosiy:{
     q:Q0,key:"FDFDCCFDCCFDCCFFECFDDCCFFECFFE",tahlil:null,skey:"huquq89-olimpiada-v1",
+    locked:true, // yopilgan: yangi urinish boshlanmaydi, yechib bo'lganlar natijasini ko'radi
     endpoint:EP,
     title:"Huquq fanidan namunaviy olimpiada testi",doc:"Huquq olimpiadasi testi",org:"Huquq fanidan olimpiada testi · 8–9-sinflar",
     meta:"8–9-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50",
@@ -959,11 +974,14 @@ function renderHome(){
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   Object.keys(TESTS).forEach(id=>{
     const t=TESTS[id];let st=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null")}catch(e){}
-    const a=mk("a","tcard"+(id==="pro"?" pro":""));a.href="?test="+id;
+    const closed=t.locked&&!(st&&st.done);
+    const a=mk(closed?"div":"a","tcard"+(id==="pro"?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
     const tags=mk("div","tags");
+    if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
     if(t.tahlil)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
     let btn="Testni boshlash";
     if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
+    else if(closed)btn="Yechib bo‘lmaydi";
     else if(st&&st.t0){tags.appendChild(mk("span","tag","Boshlangan"));btn="Davom ettirish"}
     a.append(mk("div","tt",t.title),mk("div","tm",t.meta));
     if(tags.children.length)a.appendChild(tags);
@@ -980,7 +998,9 @@ if(location.hash==="#admin"){
 }else if(!TID){renderHome()}else
 (function boot(){
   $("backLink").hidden=false;
-  const st=load();if(!st||!st.name||!st.t0)return;
+  const st=load();
+  if(T.locked&&!(st&&st.done)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
+  if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
   if(done){started=true;renderResult(true);send();return}
