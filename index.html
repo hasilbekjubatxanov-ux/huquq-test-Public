@@ -76,6 +76,11 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .locked h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--navy)}
 .locked p{margin:0}
 .locked .lk{font-size:34px;line-height:1}
+.retake{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.retake strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;color:var(--navy)}
+.retake p{margin:2px 0 0;font-family:var(--f-ui);font-size:14px;max-width:46ch;color:var(--muted)}
+.retake .rtk{display:grid;gap:4px;justify-items:start}
+.note.rnote{border-color:var(--gold);background:var(--gold-soft);color:var(--ink);font-size:14px}
 .practice{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-color:var(--gold);background:var(--gold-soft)}
 .practice strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;color:var(--gold)}
 .practice p{margin:2px 0 0;font-family:var(--f-ui);font-size:14px;max-width:46ch}
@@ -574,6 +579,10 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       </div>
     </section></div>
     <div class="certact"><button class="btn" id="savePng" type="button">Sertifikatni rasm qilib saqlash</button><span class="note" id="pngMsg"></span></div>
+    <section class="card retake" id="retakeCard" hidden>
+      <div><strong>Testni qayta yechish</strong><p>Testni xohlagancha qayta yechishingiz mumkin. Reyting va sertifikatda faqat birinchi natijangiz hisoblanadi.</p></div>
+      <div class="rtk"><button class="btn" id="retakeBtn" type="button">Testni qayta yechish</button><span class="err" id="retakeErr"></span></div>
+    </section>
     <section class="card prizeact" id="prizeAct" hidden>
       <p><b>Sovg‘angizni oling</b>Sertifikatni skrinshot qilib, Telegramda @jubatkhanovv ga yuboring va 8–11-sinflardan qaysi biri kerakligini yozing.</p>
       <a class="btn gold" href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv ga yozish</a>
@@ -873,8 +882,9 @@ document.addEventListener("visibilitychange",()=>{
 });
 
 function finish(){
-  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);fbNeed=true;save();
-  if(!fb){showFeedback();return}
+  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);
+  const retake=!!(T.paid&&paid.first);if(!retake)fbNeed=true;save();
+  if(!retake&&!fb){showFeedback();return}
   afterFeedback(false);
 }
 function afterFeedback(again){
@@ -907,14 +917,29 @@ function finishPaid(again){
   $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("pendView").hidden=false;
   document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;
   $("pendMsg").textContent="Natija hisoblanmoqda…";$("pendRetry").hidden=true;
-  fetch(ENDPOINT+"?"+qs({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0,fb}))
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0,fb},tgInfo())))
     .then(r=>r.json()).then(d=>{
       if(!d.ok||!d.key)throw new Error(d.error||"xato");
-      paid.key=d.key;paid.tahlil=d.tahlil;savePaid();applyPaid();sent=true;save();
+      paid.key=d.key;paid.tahlil=d.tahlil;
+      if(!paid.first){paid.first={ans:ans.slice(),endAt,t0,timeUp,leaves};paid.attempt=1}
+      savePaid();applyPaid();sent=true;save();
       $("pendView").hidden=true;renderResult(again);
     }).catch(()=>{$("pendMsg").textContent="Natijani yuborib bo‘lmadi. Internetni tekshirib, «Qayta urinish» tugmasini bosing. Javoblaringiz saqlangan.";$("pendRetry").hidden=false});
 }
 $("pendRetry").addEventListener("click",()=>finishPaid(false));
+// Kod egasi testni cheksiz qayta yechadi; natija reytingga va sertifikatga ta'sir qilmaydi
+$("retakeBtn").addEventListener("click",()=>{
+  const btn=$("retakeBtn");btn.disabled=true;$("retakeErr").textContent="Yuklanmoqda…";
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code:paid.code,name,device:deviceId,yangi:1},tgInfo()))).then(r=>r.json()).then(d=>{
+    if(!d.ok||!Array.isArray(d.q)){btn.disabled=false;$("retakeErr").textContent=d.error==="band"?"Bu kod boshqa qurilmaga bog‘langan.":"Hozircha qayta yechib bo‘lmadi. Keyinroq urinib ko‘ring.";return}
+    paid.q=d.q;paid.attempt=(paid.attempt||1)+1;savePaid();applyPaid();
+    ans=new Array(30).fill(null);flags=new Array(30).fill(false);strikes=Array.from({length:30},()=>[]);
+    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
+    document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("on","flagged","cur"));
+    $("resultView").hidden=true;$("practiceView").hidden=true;
+    enterTest();toast(paid.attempt+"-urinish boshlandi. Bu natija reytingga kirmaydi.");
+  }).catch(()=>{btn.disabled=false;$("retakeErr").textContent="Ulanib bo‘lmadi. Internetni tekshiring."});
+});
 function send(){
   if(!ENDPOINT||sent||T.paid)return;
   const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
@@ -1005,29 +1030,40 @@ $("savePng").addEventListener("click",async()=>{
 });
 $("closeModal").addEventListener("click",()=>{$("imgModal").hidden=true});
 $("imgModal").addEventListener("click",e=>{if(e.target.id==="imgModal")$("imgModal").hidden=true});
+const score=arr=>{const sec=[0,0,0];let total=0;arr.forEach((a,i)=>{if(a===K[i]){const s=Math.floor(i/10);sec[s]++;total+=PTS[s]}});return {sec,total}};
+const dstr=ms=>{const d=new Date(ms||Date.now());return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()};
 function renderResult(again){
   const time=mmss(spent());
   const sec=[0,0,0];let total=0;const g=$("rgrid");g.textContent="";
   ans.forEach((a,i)=>{const ok=a===K[i],s=Math.floor(i/10);if(ok){sec[s]++;total+=PTS[s]}
     const sp=document.createElement("span");sp.className=ok?"y":"x";sp.textContent=i+1;g.appendChild(sp)});
   const corr=sec[0]+sec[1]+sec[2];
-  const d=new Date(endAt||Date.now());const date=String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear();
-  const t10=sec[0]*9+sec[1]*15+sec[2]*26;const special=t10>430;
-  $("again").hidden=!again;
+  const date=dstr(endAt);
+  // Qayta urinishda sertifikat birinchi natija bo'yicha qoladi
+  const retake=!!(T.paid&&paid.first&&(paid.attempt||1)>1);
+  const first=retake?score(paid.first.ans):{sec,total};
+  const cTotal=first.total,cDate=retake?dstr(paid.first.endAt):date;
+  const t10=first.sec[0]*9+first.sec[1]*15+first.sec[2]*26;const special=t10>430;
+  const ag=$("again");ag.classList.toggle("rnote",retake);
+  ag.textContent=retake?"Bu "+paid.attempt+"-urinish natijasi: "+fmt(total)+" ball. Reyting va sertifikatda faqat birinchi natijangiz — "+fmt(cTotal)+" ball hisoblanadi."
+    :T.paid?"Siz bu testni yechib bo‘lgansiz, quyida birinchi natijangiz. Testni qayta yechishingiz mumkin, lekin reyting va sertifikatda faqat birinchi natija hisoblanadi."
+    :"Siz bu testni yechib bo‘lgansiz. Testni faqat bir marta yechish mumkin, quyida natijangiz.";
+  ag.hidden=!again&&!retake;
+  $("retakeCard").hidden=!(T.paid&&paid.code);$("retakeErr").textContent="";$("retakeBtn").disabled=false;
   $("cName").textContent=name;
   $("cTitle").textContent=special?"SERTIFIKAT":"TASHAKKURNOMA";$("cTitle").classList.toggle("long",!special);
   $("cSub").textContent=special?"Yuqori natija uchun":"Olimpiadada ishtirok etgani uchun";
   $("cDesc").textContent=special
-    ?T.desc+" 50 balldan "+fmt(total)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
-    :T.desc+" faol ishtirok etib, 50 balldan "+fmt(total)+" ball to‘plagani uchun tashakkur bildiriladi.";
-  $("cBall").textContent=fmt(total);$("cDate").textContent=date;
+    ?T.desc+" 50 balldan "+fmt(cTotal)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
+    :T.desc+" faol ishtirok etib, 50 balldan "+fmt(cTotal)+" ball to‘plagani uchun tashakkur bildiriladi.";
+  $("cBall").textContent=fmt(cTotal);$("cDate").textContent=cDate;
   const pz=$("cPrize");pz.hidden=true;pz.textContent="";
   if(false){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
   $("prizeAct").hidden=true;
   certData={special,name,title:special?"SERTIFIKAT":"TASHAKKURNOMA",sub:special?"Yuqori natija uchun":"Olimpiadada ishtirok etgani uchun",
-    desc:$("cDesc").textContent,ball:fmt(total),date,
+    desc:$("cDesc").textContent,ball:fmt(cTotal),date:cDate,
     prize:""};
-  $("cFacts").textContent="To‘g‘ri javoblar: "+corr+" / 30 · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
+  $("cFacts").textContent=(retake?paid.attempt+"-urinish · ":"")+"To‘g‘ri javoblar: "+corr+" / 30 · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
   const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
   sec.forEach((c,k)=>{
     const row=document.createElement("div");row.className="brow";
@@ -1039,7 +1075,7 @@ function renderResult(again){
     row.append(lb,tr,v);bars.appendChild(row);
   });
   const line=ans.map((a,i)=>(i+1)+(a===null?"-":L[a])).join(" ");
-  $("copybox").textContent=T.copy+"\n"+name+"\nBall: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10\nSarflangan vaqt: "+time+" / 60:00"+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
+  $("copybox").textContent=T.copy+(retake?" — "+paid.attempt+"-urinish (reytingga kirmaydi)":"")+"\n"+name+"\nBall: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10\nSarflangan vaqt: "+time+" / 60:00"+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
   renderReview();document.body.classList.remove("testmode");
   $("startView").hidden=true;$("testView").hidden=true;$("resultView").hidden=false;document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
   requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
@@ -1205,7 +1241,7 @@ function loadCodes(){
     renderFree(free);
     const box=$("cUsed");box.textContent="";
     used.forEach(c=>{const r=document.createElement("div");const b=document.createElement("b");b.textContent=c.kod;
-      r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball":"yechmoqda")+" · "+c.sana));box.appendChild(r)});
+      r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball"+(c.urinishlar>1?" · jami "+c.urinishlar+" marta yechgan":""):"yechmoqda")+" · "+c.sana));box.appendChild(r)});
     if(!used.length)box.textContent="Hozircha yo‘q.";
   }).catch(()=>{$("cMsg").textContent="Ulanib bo‘lmadi."});
 }
@@ -1244,8 +1280,8 @@ function renderHome(){
   const box=$("tlist");box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   Object.keys(TESTS).forEach(id=>{
-    const t=TESTS[id];let st=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null")}catch(e){}
-    const closed=t.locked&&!(st&&st.done);
+    const t=TESTS[id];let st=null,pd=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null");pd=JSON.parse(localStorage.getItem(t.skey+"-data")||"null")}catch(e){}
+    const closed=t.locked&&!(st&&st.done)&&!(pd&&pd.code);
     const a=mk(closed?"div":"a","tcard"+(id==="pro"?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
@@ -1273,7 +1309,7 @@ if(location.hash==="#admin"){
   const st=load();
   if(T.paid){paid=loadPaid();applyPaid();$("codeField").hidden=false;
     const li=document.createElement("li");li.textContent="Testga kirish uchun bir martalik kod kerak. Kod faqat bitta qurilmada ishlaydi.";document.querySelector(".rules").prepend(li)}
-  if(T.locked&&!new URLSearchParams(location.search).has("sinov")&&!(st&&st.done)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
+  if(T.locked&&!new URLSearchParams(location.search).has("sinov")&&!(st&&st.done)&&!(T.paid&&paid.code)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
   if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
@@ -1281,7 +1317,7 @@ if(location.hash==="#admin"){
   fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";
   if(Array.isArray(st.strikes)&&st.strikes.length===30)strikes=st.strikes.map(a=>Array.isArray(a)?a:[]);
   if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
-  if(done){started=true;if(fbNeed&&!fb){showFeedback();return}if(T.paid&&!paid.key)finishPaid(true);else{renderResult(true);send()}return}
+  if(done){started=true;if(fbNeed&&!fb){showFeedback();return}if(T.paid&&(!paid.key||!sent))finishPaid(true);else{renderResult(true);send()}return}
   if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
   enterTest();toast("Test qolgan joyidan davom ettirildi. Vaqt to‘xtamagan.");
 })();

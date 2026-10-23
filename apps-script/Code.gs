@@ -18,9 +18,11 @@ const TESTLAR = {
 const BALL = [0.9, 1.5, 2.6]; // 1–10, 11–20, 21–30-savollar
 const LIMIT = 60 * 60;        // test vaqti, soniya
 const USTUNLAR = ["Sana", "Ism", "Ball", "To‘g‘ri", "Oson", "O‘rtacha", "Qiyin", "Xato savollar",
-  "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod"];
+  "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod", "Urinish"];
 const KOD_VARAQ = "Kodlar";
-const KOD_USTUNLAR = ["Kod", "Holat", "Ism", "Telegram", "Telegram ID", "Qurilma", "Boshlangan", "Tugagan", "Ball", "Javoblar"];
+// Ball va Javoblar — birinchi urinishniki (reyting va sertifikat shu bo'yicha);
+// keyingi urinishlar soni "Urinishlar"da, davom etayotgan qayta urinish boshlangan vaqti "Joriy urinish"da.
+const KOD_USTUNLAR = ["Kod", "Holat", "Ism", "Telegram", "Telegram ID", "Qurilma", "Boshlangan", "Tugagan", "Ball", "Javoblar", "Urinishlar", "Joriy urinish"];
 const FIKR_VARAQ = "Fikrlar";
 const FIKR_USTUNLAR = ["Sana", "Test", "Ism", "Ball", "Fikr", "Kod", "Telegram", "Qurilma"];
 const KOD_HARFLAR = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // 0/O va 1/I adashmasligi uchun yo'q
@@ -81,11 +83,11 @@ function mmss_(s) {
   return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 }
 
-function natijaYoz_(id, d, javoblar, soniya, kod) {
+function natijaYoz_(id, d, javoblar, soniya, kod, urinish) {
   const h = hisobla_(id, javoblar);
   natijaVaraq_(id).appendRow([new Date(), matn_(d.name, 100), h.ball, h.togri, h.oson, h.orta, h.qiyin,
     h.xato.join(", ") || "yo‘q", javoblar, mmss_(soniya), soniya, d.timeUp === true || d.timeUp === "1" ? "ha" : "",
-    Number(d.leaves) || 0, matn_(d.tg, 100), matn_(d.tgId, 30), matn_(d.device, 40), kod ? kodKorinish_(kod) : ""]);
+    Number(d.leaves) || 0, matn_(d.tg, 100), matn_(d.tgId, 30), matn_(d.device, 40), kod ? kodKorinish_(kod) : "", urinish || 1]);
   return h;
 }
 
@@ -129,18 +131,29 @@ function kodTop_(kod) {
   return null;
 }
 
-// O'quvchi kod bilan testni boshlaydi (yoki shu qurilmada davom ettiradi)
+// Kod egasi: o'sha qurilma yoki o'sha Telegram akkaunt
+function egasi_(k, device, tgId) {
+  return (device && String(k.v[5]) === device) || (tgId && String(k.v[4]) === String(tgId));
+}
+
+// O'quvchi kod bilan testni boshlaydi, davom ettiradi yoki tugatgach qayta yechadi
 function boshlash_(p) {
   if (!PRO_DATA) return { error: "yoq" };
-  const kod = kodNorm_(p.code), device = String(p.device || "");
+  const kod = kodNorm_(p.code), device = String(p.device || ""), tgId = String(p.tgId || "");
   if (kod.length < 6) return { error: "kod" };
   const k = kodTop_(kod);
   if (!k) return { error: "kod" };
   const holat = String(k.v[1]);
-  if (holat === "tugagan") return { error: "tugagan" };
+  if (holat === "tugagan") {
+    // Qayta urinish: cheksiz, reytingga va sertifikatga ta'sir qilmaydi
+    if (!egasi_(k, device, tgId)) return { error: "band" };
+    let joriy = k.v[11] instanceof Date ? k.v[11] : null;
+    if (!joriy || p.yangi === "1") { joriy = new Date(); k.sh.getRange(k.row, 12).setValue(joriy); }
+    return { ok: true, retake: true, elapsed: Math.max(0, Math.floor((Date.now() - joriy.getTime()) / 1000)), q: PRO_DATA.savollar };
+  }
   let boshlangan = k.v[6] instanceof Date ? k.v[6] : null;
   if (holat === "boshlangan") {
-    if (!device || String(k.v[5]) !== device) return { error: "band" };
+    if (!egasi_(k, device, tgId)) return { error: "band" };
   } else {
     boshlangan = new Date();
     k.sh.getRange(k.row, 2, 1, 6).setValues([["boshlangan", matn_(p.name, 100), matn_(p.tg, 100), matn_(p.tgId, 30), matn_(device, 40), boshlangan]]);
@@ -152,11 +165,20 @@ function boshlash_(p) {
 // Test tugadi: ball hisoblanadi, natija yoziladi, kalit va tahlil qaytariladi
 function tugatish_(p) {
   if (!PRO_DATA) return { error: "yoq" };
-  const kod = kodNorm_(p.code), device = String(p.device || "");
+  const kod = kodNorm_(p.code), device = String(p.device || ""), tgId = String(p.tgId || "");
   const k = kodTop_(kod);
-  if (!k || !device || String(k.v[5]) !== device) return { error: "kod" };
+  if (!k || !egasi_(k, device, tgId)) return { error: "kod" };
   let javoblar, h;
-  if (String(k.v[1]) === "tugagan") {
+  if (String(k.v[1]) === "tugagan" && k.v[11] instanceof Date) {
+    // Qayta urinish natijasi: "PRO test" varag'iga takroriy sifatida yoziladi
+    javoblar = javoblar_(p.answers);
+    const soniya = Math.min(LIMIT, Math.max(0, Math.floor((Date.now() - k.v[11].getTime()) / 1000)));
+    const urinish = (Number(k.v[10]) || 1) + 1;
+    h = natijaYoz_("pro", { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves,
+      timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod, urinish);
+    k.sh.getRange(k.row, 11, 1, 2).setValues([[urinish, ""]]);
+    return { ok: true, retake: true, key: TESTLAR.pro.kalit, tahlil: PRO_DATA.tahlil, ball: h.ball };
+  } else if (String(k.v[1]) === "tugagan") {
     javoblar = javoblar_(k.v[9]);
     h = hisobla_("pro", javoblar);
   } else if (String(k.v[1]) === "boshlangan") {
@@ -167,7 +189,7 @@ function tugatish_(p) {
       timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod);
     fikrYoz_("pro", k.v[2], h.ball, p.fb, kod, k.v[3], device);
     k.sh.getRange(k.row, 2).setValue("tugagan");
-    k.sh.getRange(k.row, 8, 1, 3).setValues([[new Date(), h.ball, javoblar]]);
+    k.sh.getRange(k.row, 8, 1, 5).setValues([[new Date(), h.ball, javoblar, 1, ""]]);
   } else {
     return { error: "kod" };
   }
@@ -184,7 +206,9 @@ function kodYarat_(n) {
     for (let i = 0; i < 8; i++) k += KOD_HARFLAR[Math.floor(Math.random() * KOD_HARFLAR.length)];
     if (bor[k]) continue;
     bor[k] = true;
-    yangi.push([kodKorinish_(k), "bo‘sh", "", "", "", "", "", "", "", ""]);
+    const qator = KOD_USTUNLAR.map(function () { return ""; });
+    qator[0] = kodKorinish_(k); qator[1] = "bo‘sh";
+    yangi.push(qator);
   }
   sh.getRange(sh.getLastRow() + 1, 1, yangi.length, KOD_USTUNLAR.length).setValues(yangi);
   return { ok: true, codes: yangi.map(function (r) { return r[0]; }) };
@@ -195,6 +219,7 @@ function kodlar_() {
   const v = kodVaraq_().getDataRange().getValues().slice(1);
   return { codes: v.filter(function (r) { return r[0]; }).map(function (r) {
     return { kod: String(r[0]), holat: String(r[1]), ism: String(r[2]).replace(/^'/, ""), ball: r[8] === "" ? null : Number(r[8]),
+      urinishlar: Number(r[10]) || 0,
       sana: r[6] instanceof Date ? Utilities.formatDate(r[6], tz, "dd.MM.yyyy HH:mm") : "" };
   }) };
 }
@@ -215,13 +240,13 @@ function reyting_(id) {
   const rows = qiymatlar.map(function (r) {
     // Takroriy urinish: bir xil Telegram ID, qurilma yoki ism
     const kim = [String(r[14] || ""), String(r[15] || ""), String(r[1] || "").trim().toLowerCase()];
-    const takror = kim.some(function (x) { return x && korilgan[x]; });
+    const takror = Number(r[17]) > 1 || kim.some(function (x) { return x && korilgan[x]; });
     kim.forEach(function (x) { if (x) korilgan[x] = true; });
     return {
       ism: String(r[1]).replace(/^'/, ""), ball: Number(r[2]) || 0, togri: r[3], oson: r[4], orta: r[5], qiyin: r[6],
       xato: String(r[7]), javoblar: String(r[8]), soniya: Number(r[10]) || 0, tugadi: r[11] === "ha", chiqish: r[12],
       sana: r[0] instanceof Date ? Utilities.formatDate(r[0], tz, "dd.MM.yyyy HH:mm") : String(r[0]), takror: takror,
-      kod: String(r[16] || "")
+      kod: String(r[16] || ""), urinish: Number(r[17]) || 1
     };
   });
   rows.sort(function (a, b) { return b.ball - a.ball || a.soniya - b.soniya; });
