@@ -715,7 +715,8 @@ const TESTS={
     desc:"Huquq fanidan namunaviy olimpiada testida",copy:"Huquq olimpiadasi (8–9-sinf)"
   },
   pro:{
-    q:null,key:"",tahlil:null,skey:"huquq-pro-v1",paid:true, // savollar, kalit va tahlil Google skriptdan keladi
+    q:null,key:"",tahlil:null,skey:"huquq-pro-v1",paid:true,free:true, // free: kod so'ralmaydi, skript o'zi beradi
+    // savollar, kalit va tahlil Google skriptdan keladi
     endpoint:EP,
     title:"OLIMPIADA PRO TESTI",doc:"Olimpiada PRO testi",org:"Olimpiada PRO testi · 8–9-sinflar",
     meta:"8–9-sinflar · Final test · 30 ta savol · 60 daqiqa · Maksimal ball: 50",
@@ -849,16 +850,19 @@ $("startBtn").addEventListener("click",()=>{
   $("startErr").textContent="";name=raw;t0=Date.now();cur=0;save();enterTest();
 });
 function startPaid(raw){
-  const code=$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
-  if(code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
-  const btn=$("startBtn");btn.disabled=true;$("startErr").textContent="Kod tekshirilmoqda…";
+  const code=T.free?"":$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(!T.free&&code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
+  const btn=$("startBtn");btn.disabled=true;$("startErr").textContent=T.free?"Test yuklanmoqda…":"Kod tekshirilmoqda…";
   fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId},tgInfo()))).then(r=>r.json()).then(d=>{
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
         tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
-    paid={code,q:d.q};savePaid();applyPaid();
+    paid={code:d.code||code,q:d.q};
+    // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
+    if(d.retake&&d.first){paid.first={ans:String(d.first.answers).split("").map(c=>L.indexOf(c)),endAt:d.first.endAt,t0:0,timeUp:false,leaves:0};paid.attempt=Number(d.attempt)||2}
+    savePaid();applyPaid();
     $("startErr").textContent="";name=raw;t0=Date.now()-(Number(d.elapsed)||0)*1000;cur=0;save();enterTest();
   }).catch(()=>{btn.disabled=false;$("startErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
@@ -1179,7 +1183,7 @@ function loadAdmin(){
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
     $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));renderAdmin();
-    $("aCodes").hidden=!TESTS[adminTest].paid;if(TESTS[adminTest].paid)loadCodes();
+    const withCodes=TESTS[adminTest].paid&&!TESTS[adminTest].free;$("aCodes").hidden=!withCodes;if(withCodes)loadCodes();
     loadFeedback();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
@@ -1285,7 +1289,7 @@ function renderHome(){
     const a=mk(closed?"div":"a","tcard"+(id==="pro"?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
-    if(t.paid)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
+    if(t.paid&&!t.free)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
     if(t.tahlil||t.paid)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
     let btn="Testni boshlash";
     if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
@@ -1307,8 +1311,10 @@ if(location.hash==="#admin"){
 (function boot(){
   $("backLink").hidden=false;
   const st=load();
-  if(T.paid){paid=loadPaid();applyPaid();$("codeField").hidden=false;
-    const li=document.createElement("li");li.textContent="Testga kirish uchun bir martalik kod kerak. Kod faqat bitta qurilmada ishlaydi.";document.querySelector(".rules").prepend(li)}
+  if(T.paid){paid=loadPaid();applyPaid();$("codeField").hidden=!!T.free;
+    const li=document.createElement("li");
+    li.textContent=T.free?"Testni xohlagancha qayta yechish mumkin, lekin reyting va sertifikatda faqat birinchi natija hisoblanadi.":"Testga kirish uchun bir martalik kod kerak. Kod faqat bitta qurilmada ishlaydi.";
+    document.querySelector(".rules").prepend(li)}
   if(T.locked&&!new URLSearchParams(location.search).has("sinov")&&!(st&&st.done)&&!(T.paid&&paid.code)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
   if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;

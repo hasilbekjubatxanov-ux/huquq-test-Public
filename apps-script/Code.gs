@@ -9,6 +9,9 @@
 // Admin sahifasiga kirish paroli — o'zingiz o'zgartiring.
 const ADMIN_PAROL = "BU_YERGA_PAROL_YOZING";
 
+// true — PRO test kodsiz, hamma uchun ochiq: har bir qurilma/Telegram akkauntga yashirin kod avtomatik beriladi
+const PRO_BEPUL = true;
+
 const PRO_DATA = null; // @@PRO_DATA@@
 
 const TESTLAR = {
@@ -136,10 +139,24 @@ function egasi_(k, device, tgId) {
   return (device && String(k.v[5]) === device) || (tgId && String(k.v[4]) === String(tgId));
 }
 
+// Bepul rejim: shu qurilma yoki Telegram akkauntga avval berilgan kod (bo'lmasa — null)
+function egaTop_(device, tgId) {
+  const v = kodVaraq_().getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) {
+    if ((device && String(v[i][5]) === device) || (tgId && String(v[i][4]) === tgId)) return kodNorm_(v[i][0]);
+  }
+  return null;
+}
+
 // O'quvchi kod bilan testni boshlaydi, davom ettiradi yoki tugatgach qayta yechadi
 function boshlash_(p) {
   if (!PRO_DATA) return { error: "yoq" };
-  const kod = kodNorm_(p.code), device = String(p.device || ""), tgId = String(p.tgId || "");
+  const device = String(p.device || ""), tgId = String(p.tgId || "");
+  let kod = kodNorm_(p.code);
+  if (!kod && PRO_BEPUL) {
+    if (!device && !tgId) return { error: "kod" };
+    kod = egaTop_(device, tgId) || kodNorm_(kodYarat_(1).codes[0]);
+  }
   if (kod.length < 6) return { error: "kod" };
   const k = kodTop_(kod);
   if (!k) return { error: "kod" };
@@ -149,7 +166,9 @@ function boshlash_(p) {
     if (!egasi_(k, device, tgId)) return { error: "band" };
     let joriy = k.v[11] instanceof Date ? k.v[11] : null;
     if (!joriy || p.yangi === "1") { joriy = new Date(); k.sh.getRange(k.row, 12).setValue(joriy); }
-    return { ok: true, retake: true, elapsed: Math.max(0, Math.floor((Date.now() - joriy.getTime()) / 1000)), q: PRO_DATA.savollar };
+    return { ok: true, retake: true, code: kodKorinish_(kod), attempt: (Number(k.v[10]) || 1) + 1,
+      first: { answers: String(k.v[9]), endAt: k.v[7] instanceof Date ? k.v[7].getTime() : 0 },
+      elapsed: Math.max(0, Math.floor((Date.now() - joriy.getTime()) / 1000)), q: PRO_DATA.savollar };
   }
   let boshlangan = k.v[6] instanceof Date ? k.v[6] : null;
   if (holat === "boshlangan") {
@@ -159,7 +178,7 @@ function boshlash_(p) {
     k.sh.getRange(k.row, 2, 1, 6).setValues([["boshlangan", matn_(p.name, 100), matn_(p.tg, 100), matn_(p.tgId, 30), matn_(device, 40), boshlangan]]);
   }
   const otgan = Math.max(0, Math.floor((Date.now() - boshlangan.getTime()) / 1000));
-  return { ok: true, elapsed: otgan, q: PRO_DATA.savollar };
+  return { ok: true, code: kodKorinish_(kod), elapsed: otgan, q: PRO_DATA.savollar };
 }
 
 // Test tugadi: ball hisoblanadi, natija yoziladi, kalit va tahlil qaytariladi
