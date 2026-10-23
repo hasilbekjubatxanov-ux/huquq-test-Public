@@ -828,6 +828,7 @@ function renderResult(again){
   requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
 }
 function renderReview(){
+  if(!T.tahlil)return; // tahlili bor testlardagina ko‘rsatiladi
   const box=$("rlist"),only=$("onlyWrong").checked;box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   Q.forEach((q,i)=>{
