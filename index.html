@@ -76,6 +76,14 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .locked h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--navy)}
 .locked p{margin:0}
 .locked .lk{font-size:34px;line-height:1}
+.pend{display:grid;gap:12px;justify-items:start;margin-top:22px}
+.pend p{margin:0;font-family:var(--f-ui)}
+.acodes{display:grid;gap:10px}
+.acodes h3{margin:0;font-family:var(--f-ui);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
+.acodes input[type=number]{font:inherit;font-family:var(--f-ui);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:120px}
+.clist{display:grid;gap:4px;font-family:var(--f-ui);font-size:13px}
+.clist div{display:flex;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:5px 0}
+.clist b{font-family:var(--f-mono);font-weight:500}
 .atabs{display:flex;gap:8px;flex-wrap:wrap}
 .atabs button[aria-pressed="true"]{background:var(--navy);color:var(--paper)}
 .arow2 .wr{grid-column:1 / -1;font-family:var(--f-ui);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
@@ -356,6 +364,8 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <h2>Testni boshlash</h2>
       <p class="note">Sertifikatda chiqadigan familiya va ismingizni yozing.</p>
       <div class="field start"><label for="fio">Familiya, ism</label><input id="fio" autocomplete="name" placeholder="Masalan: Karimov Aziz"></div>
+      <div class="field start" id="codeField" hidden><label for="code">Test kodi</label><input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Masalan: K7M2-QX9P">
+        <span class="note">Kodingiz yo‘qmi? Telegramda <a href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv</a> ga yozing.</span></div>
       <div class="err" id="startErr"></div>
       <div><button class="btn" id="startBtn" type="button">Testni boshlash</button></div>
     </div>
@@ -419,6 +429,13 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       </div>
     </section>
   </div>
+</div>
+
+<div class="wrap" id="pendView" hidden>
+  <section class="card pend">
+    <p id="pendMsg">Natija hisoblanmoqda…</p>
+    <button class="btn" id="pendRetry" type="button" hidden>Qayta urinish</button>
+  </section>
 </div>
 
 <div class="wrap" id="resultView" hidden>
@@ -508,6 +525,20 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <button class="btn ghost" id="aRefresh" type="button">Yangilash</button>
       </div>
       <div class="alist" id="aRows"></div>
+      <section class="card acodes" id="aCodes" hidden>
+        <h3>Kodlar</h3>
+        <div class="astats" id="cStats"></div>
+        <div class="arow">
+          <label class="field" for="cNum"><span class="note">Nechta kod yaratilsin</span><input id="cNum" type="number" min="1" max="200" value="10"></label>
+          <button class="btn" id="cGen" type="button">Yangi kodlar yaratish</button>
+        </div>
+        <div class="note" id="cMsg"></div>
+        <div class="note">Bo‘sh kodlar — har bir ishtirokchiga bittadan bering:</div>
+        <div class="copybox" id="cFree"></div>
+        <div><button class="btn ghost" id="cCopy" type="button">Bo‘sh kodlarni nusxalash</button></div>
+        <div class="note">Ishlatilgan kodlar:</div>
+        <div class="clist" id="cUsed"></div>
+      </section>
     </div>
   </section>
 </div>
@@ -556,73 +587,6 @@ const Q0=[
 ["Voyaga yetmaganligida tug‘ilishi yoki ota-onasining fuqaroligi bo‘yicha xorijiy davlat fuqaroligini olgan shaxs necha yoshga to‘lganida undan rasman chiqmasa, O‘zbekiston fuqaroligini yo‘qotishi mumkin?",null,["18 yosh","16 yosh","25 yosh","21 yosh"]],
 ["Vasiylik va homiylik belgilanadigan holatlarni to‘g‘ri moslashtiring.",["1) 14 yoshga to‘lmagan yetim bola;","2) 14 yoshdan 18 yoshgacha bo‘lgan, ota-ona qaramog‘idan mahrum bola;","3) sud muomalaga layoqatsiz deb topgan fuqaro;","4) sud muomala layoqatini cheklagan fuqaro."],["vasiylik — 1; 2; homiylik — 3; 4","vasiylik — 1; 3; homiylik — 2; 4","vasiylik — 1; 4; homiylik — 2; 3","vasiylik — 3; homiylik — 1; 2; 4"]]
 ];
-const PRO={
-q:[
-["Atamalarni ularning kelib chiqishi (lug‘aviy ma’nosi) bilan moslashtiring.", ["1) apatrid; 2) immunitet; 3) kvorum; 4) referendum; 5) naturallashtirish.", "a) lotincha “yetarlicha hozirlik”; b) fransuzcha “tabiiy”; c) yunoncha “vatandan judo bo‘lgan”, “bevatan”; d) lotincha “bildirilishi shart bo‘lgan narsa”; e) lotincha “biror narsadan ozod qilish”; f) lotincha “farqlash”."], ["1-c; 2-f; 3-a; 4-d; 5-b", "1-c; 2-e; 3-a; 4-d; 5-b", "1-c; 2-e; 3-d; 4-a; 5-b", "1-e; 2-c; 3-a; 4-d; 5-b"]],
-["Konstitutsiyaning 1-moddasida O‘zbekistonga berilgan tavsifga kirmaydiganlarini aniqlang.", ["1) suveren; 2) demokratik; 3) teokratik; 4) huquqiy; 5) ijtimoiy; 6) totalitar; 7) dunyoviy; 8) federativ."], ["3, 6", "3, 4, 6, 8", "2, 6, 8", "3, 6, 8"]],
-["Bo‘shliqlarni to‘ldiring.", ["“Demokratiya” so‘zi (a) …… tilidan olingan bo‘lib, “xalq hokimiyati” degani. “Unitar” lotincha (b) …… degan ma’noni bildiradi. “Suverenitet” (c) …… tilidan olingan bo‘lib, “oliy hokimiyat” degan ma’noni beradi. Suverenitet tushunchasini fanga (d) …… kiritgan."], ["a — lotin; b — oddiy, yagona; c — fransuz; d — Jan Boden", "a — yunon; b — ittifoq bilan birlashgan; c — fransuz; d — Jan Boden", "a — yunon; b — oddiy, yagona; c — fransuz; d — Jan Boden", "a — yunon; b — oddiy, yagona; c — lotin; d — Sharl Lui de Monteskyo"]],
-["Fikrlarni tahlil qiling va to‘g‘ri xulosani aniqlang.", ["I. 15 yoshli Sardor do‘kondan yashirincha telefon olib chiqib ketgani uchun jinoiy javobgarlikka tortilishi mumkin, chunki", "II. o‘g‘rilik jinoyatining subyekti o‘n to‘rt yoshga to‘lgan aqli raso shaxsdir."], ["I va II to‘g‘ri, II I ning sababini izohlaydi", "I va II to‘g‘ri, lekin II I ning sababini izohlamaydi", "I to‘g‘ri, II noto‘g‘ri", "I noto‘g‘ri, II to‘g‘ri"]],
-["Qaysi qator mantiqan ortiqcha?", null, ["hayfsan; jarima; mehnat shartnomasini bekor qilish", "ma’muriy qamoq; musodara; qurolni haq to‘lab olib qo‘yish", "axloq tuzatish ishlari; ozodlikni cheklash; umrbod ozodlikdan mahrum qilish", "hayfsan; ma’muriy qamoq; axloq tuzatish ishlari"]],
-["Quyidagi fikrlardan nechtasi to‘g‘ri?", ["1) Qatar va O‘mon sultonligi mutlaq monarxiyaga misol bo‘ladi; 2) Daniya va Norvegiya cheklangan monarxiyaga misol bo‘ladi; 3) Malayziya qiroli besh yilga saylanadi; 4) Vatikan noan’anaviy monarxiyaga misol bo‘ladi; 5) parlamentar respublikada davlat boshlig‘i asosan parlament tomonidan saylanadi; 6) Fransiya va Janubiy Koreya prezidentlik respublikasiga misol bo‘ladi; 7) monarx o‘z boshqaruvining natijasi uchun yuridik jihatdan javobgar bo‘lmaydi; 8) totalitar tartibotda saylovchilarning muqobil deputatlarni saylash imkoniyati bo‘lmaydi."], ["4 ta", "6 ta", "5 ta", "7 ta"]],
-["Vaziyatni tahlil qiling. B.ning O‘zbekiston fuqaroligi haqida qaysi xulosa to‘g‘ri?", ["O‘zbekiston fuqarosi B. 15 yoshida ota-onasi bilan xorijga ko‘chib ketdi va voyaga yetmaganligi sababli ota-onasining fuqaroligi bo‘yicha o‘sha davlat fuqaroligini oldi. Hozir u 22 yoshda, konsullik hisobida turadi, ammo xorijiy davlat fuqaroligidan rasman chiqmagan."], ["fuqarolik yo‘qotilgan, chunki u yigirma bir yoshga to‘lganida xorijiy davlat fuqaroligidan rasman chiqmagan", "fuqarolik saqlanib qolgan, chunki xorijiy fuqarolikni voyaga yetmaganida ota-onasining fuqaroligi bo‘yicha olgan", "fuqarolik o‘n sakkiz yoshga to‘lgan kuni yo‘qotilgan, chunki u voyaga yetgan", "fuqarolik saqlanib qolgan, chunki u yetti yildan beri konsullik hisobida turibdi"]],
-["Fuqarolik huquqiga oid hukmlarning yakuniy xulosasini aniqlang.", ["I. Fuqarolik kodeksining 17-moddasiga ko‘ra, fuqaroning huquq layoqati u tug‘ilgan paytdan e’tiboran vujudga keladi.", "II. Fuqaroning muomala layoqati o‘n olti yoshga to‘lganda to‘liq hajmda vujudga keladi.", "III. Nikoh haqiqiy emas deb topilsa, sud voyaga yetmagan er (xotin)ning to‘la muomala layoqatini yo‘qotganligi haqida qaror qabul qilishi mumkin.", "IV. Emansipatsiya o‘n olti yoshga to‘lgan, mehnat shartnomasi bo‘yicha ishlayotgan yoki tadbirkorlik bilan shug‘ullanayotgan voyaga yetmaganga nisbatan sud qarori bilan amalga oshiriladi."], ["I-to‘g‘ri; II-to‘g‘ri; III-to‘g‘ri; IV-to‘g‘ri", "I-to‘g‘ri; II-noto‘g‘ri; III-to‘g‘ri; IV-noto‘g‘ri", "I-noto‘g‘ri; II-noto‘g‘ri; III-to‘g‘ri; IV-to‘g‘ri", "I-to‘g‘ri; II-noto‘g‘ri; III-to‘g‘ri; IV-to‘g‘ri"]],
-["Hikmatli so‘zlarni ular epigraf qilib keltirilgan mavzular bilan moslashtiring.", ["1) “Davlat ishlarining to‘qqiz ulushi kengash, tadbir va mashvarat, qolgan bir ulushi esa qilich bilan bajo keltirilur”; 2) “Biror mamlakat ishlarining orqaga ketishiga sabab — tuzuklari-yu tartibotlarining susayishidandir”; 3) “Yaxshilar mas’uliyat bilan ish qilishlari uchun qonunlarga muhtoj bo‘lmaydilar, yomonlar qonunlarga chap berish uchun yo‘l topadilar”; 4) “Haq olinur, berilmas”; 5) “Jazolashga qodir bo‘lmagan hakam oxir-oqibatda jinoyatga sherik bo‘ladi”.", "a) Huquq normasi; b) Davlat shakllari; c) Huquqbuzarlik; d) Davlat funksiyasi; e) Huquqiy munosabatlar; f) Huquq manbalari; g) Oila qonunchiligi."], ["1-d; 2-b; 3-e; 4-a; 5-c", "1-b; 2-d; 3-f; 4-a; 5-c", "1-d; 2-b; 3-f; 4-a; 5-c", "1-d; 2-b; 3-f; 4-e; 5-c"]],
-["Ma’lumotlarni tahlil qilib, Eyler-Venn diagrammasiga joylashtiring.", ["I. Huquq; II. Axloq; III. Umumiy xususiyatlar.", "1) xatti-harakatni baholash mezoni “qonuniy-noqonuniy”; 2) ijtimoiy munosabatlarning kengroq doirasini, jumladan do‘stlik va muhabbatni ham tartibga soladi; 3) zarur hollarda davlatning majburlov kuchi orqali qaror topadi; 4) davlatning yordamisiz o‘z-o‘zidan shakllanadi; 5) aholining aksariyat qismining qarashlari va tushunchalari aks etadi; 6) normativ-huquqiy hujjatlarda aniq ko‘rinishga ega; 7) zid harakat uchun aniq bir jazo chorasi ko‘zda tutilmaydi."], ["I-1, 3, 6; II-2, 4; III-5, 7", "I-1, 3, 6; II-2, 4, 7; III-5", "I-1, 3; II-2, 4, 7; III-5, 6", "I-1, 6; II-2, 4, 7; III-3, 5"], "venn"],
-["Qonun qabul qilinishi bosqichlarini to‘g‘ri tartibda joylashtiring.", ["1) Prezident qonunni imzolaydi va e’lon qiladi; 2) qonun loyihasi Qonunchilik palatasiga kiritiladi; 3) Senat qonunni ma’qullaydi; 4) Qonunchilik palatasi qonunni qabul qiladi; 5) qonun imzolash uchun Prezidentga yuboriladi; 6) qonunchilik tashabbusi huquqiga ega subyekt loyihani tayyorlaydi."], ["6, 2, 3, 4, 5, 1", "2, 6, 4, 3, 5, 1", "6, 4, 2, 3, 5, 1", "6, 2, 4, 3, 5, 1"]],
-["Jadvalning qaysi qatorlari to‘g‘ri to‘ldirilgan?", ["Lavozim — tayinlash (saylash) tartibi:", "1) Bosh vazir — Qonunchilik palatasi ma’qullaganidan keyin Prezident tayinlaydi;", "2) Toshkent shahar hokimi — Prezident tayinlaydi va lavozimidan ozod etadi;", "3) Konstitutsiyaviy sud sudyalari — Prezident tayinlaydi;", "4) Davlat xavfsizlik xizmati raisi — Senat bilan maslahatlashuvlardan keyin Prezident tayinlaydi;", "5) tuman hokimi — tuman aholisi tomonidan bevosita saylanadi."], ["1, 2, 4", "1, 2, 3", "2, 4, 5", "1, 4"]],
-["Fikrlarni tahlil qiling va to‘g‘ri xulosani aniqlang.", ["I. Senat a’zolari daxlsizlik (immunitet) huquqiga ega, chunki", "II. Senat a’zolarining to‘qqiz nafarini O‘zbekiston Respublikasi Prezidenti tayinlaydi."], ["I va II to‘g‘ri, II I ning sababini izohlaydi", "I va II to‘g‘ri, lekin II I ning sababini izohlamaydi", "I to‘g‘ri, II noto‘g‘ri", "I noto‘g‘ri, II to‘g‘ri"]],
-["Bo‘shliqlarni to‘ldiring.", ["Siyosiy partiyani tuzish uchun kamida (a) …… fuqaroning imzosi to‘planishi lozim. Jamoat birlashmasi esa kamida (b) …… nafar fuqaroning tashabbusi bilan tuziladi. Kamida (c) …… oyda bir marta nashr etiladigan yoki efirga beriladigan ommaviy axborot shakli ommaviy axborot vositasi hisoblanadi. (d) …… yoshga to‘lgan va o‘ttiz yoshdan oshmagan shaxslar yoshlar sanaladi."], ["a — yigirma ming; b — ellik; c — olti; d — o‘n to‘rt", "a — o‘n ming; b — o‘n; c — olti; d — o‘n to‘rt", "a — yigirma ming; b — o‘n; c — uch; d — o‘n olti", "a — yigirma ming; b — o‘n; c — olti; d — o‘n to‘rt"]],
-["Matnning qaysi qismlarida xatoga yo‘l qo‘yilgan?", ["(1) “Gipoteza” yunoncha so‘z bo‘lib, “faraz qilish”, “fikr yuritish” degan ma’noni anglatadi. (2) Dispozitsiyada huquq normalari bajarilmagani uchun davlat tomonidan qo‘llaniladigan majburlov chorasi bayon etiladi. (3) “Pretsedent” lotincha “avvalgisi”, “oldingisi” degani. (4) “Manba” arabcha “boshlanish”, “ibtido” ma’nosini bildiradi. (5) “Norma” lotincha “qoida”, “namuna” degan ma’noni anglatadi. (6) Normativ-huquqiy hujjat tushunchasi “Normativ-huquqiy hujjatlar to‘g‘risida”gi qonunning 5-moddasida berilgan."], ["2, 4", "3, 6", "2, 6", "2, 5, 6"]],
-["Fuqarolikka oid fikrlardan nechtasi to‘g‘ri?", ["1) umumiy tartibda qabul qilish uchun shaxs O‘zbekistonda uzluksiz besh yil doimiy yashagan bo‘lishi kerak; 2) bir yil davomida jami bir yuz sakson uch kundan ko‘p bo‘lmagan muddatda chetga chiqqan bo‘lsa ham, yashash uzluksiz hisoblanadi; 3) soddalashtirilgan tartib alohida xizmat ko‘rsatgan olimlar va sportchilarga nisbatan qo‘llaniladi; 4) fuqarolikka alohida tartibda qabul qilishni Prezident amalga oshiradi; 5) xorijda doimiy yashovchi shaxs besh yil uzrli sababsiz konsullik hisobiga turmasa, fuqarolik yo‘qotiladi; 6) fuqarolikni bir martadan ortiq qayta tiklashga yo‘l qo‘yilmaydi; 7) fuqarolikka qabul qilish to‘g‘risidagi iltimosnoma Prezident nomiga yoziladi; 8) umumiy tartibda qabul qilishda shaxsning tirikchilik uchun qonuniy manbaga ega bo‘lishi talab etilmaydi."], ["5 ta", "3 ta", "4 ta", "6 ta"]],
-["Ma’lumotlarni tahlil qilib, Eyler-Venn diagrammasiga joylashtiring.", ["I. Ariza; II. Shikoyat; III. Umumiy xususiyatlar.", "1) fuqarolarning o‘z huquq va erkinliklarini amalga oshirish uchun ko‘mak so‘rab qilgan murojaati; 2) fuqarolarning buzilgan huquqlari, erkinliklari va qonuniy manfaatlarini tiklashni talab qiluvchi murojaati; 3) murojaat turlaridan biri hisoblanadi; 4) masalan, fuqaroning xorijda davolanish uchun vakolatli organdan yordam so‘rashi; 5) masalan, dam olish maskani aholining tungi osoyishtaligini buzayotgani yuzasidan ichki ishlar organiga murojaat qilish; 6) masalan, noqonuniy ishdan bo‘shatilgan xodimning ishga tiklashni talab qilishi."], ["I-1, 4; II-2, 5; III-3, 6", "I-1, 4, 6; II-2, 5; III-3", "I-4; II-2, 5, 6; III-1, 3", "I-1, 4; II-2, 5, 6; III-3"], "venn"],
-["Ayb shakllari haqidagi hukmlarning yakuniy xulosasini aniqlang.", ["I. Shaxs qilmishining ijtimoiy xavfli oqibatlariga ko‘zi yetgan va ularning yuz berishini istagan bo‘lsa, qilmish to‘g‘ri qasddan sodir etilgan hisoblanadi.", "II. Egri qasdda shaxs oqibatlarning yuz berishiga ongli ravishda yo‘l qo‘yadi.", "III. O‘z-o‘ziga ishonishda shaxsning qilmish oqibatlariga umuman ko‘zi yetmaydi, lekin ko‘zi yetishi lozim va mumkin bo‘ladi.", "IV. Ayb huquqbuzarlik tarkibining subyektiv tomoniga kiradi."], ["I-to‘g‘ri; II-to‘g‘ri; III-to‘g‘ri; IV-to‘g‘ri", "I-to‘g‘ri; II-to‘g‘ri; III-noto‘g‘ri; IV-to‘g‘ri", "I-to‘g‘ri; II-noto‘g‘ri; III-noto‘g‘ri; IV-to‘g‘ri", "I-noto‘g‘ri; II-to‘g‘ri; III-noto‘g‘ri; IV-to‘g‘ri"]],
-["Vaziyatga oid fikrlardan nechtasi to‘g‘ri?", ["15 yoshli Aziz do‘kondan yashirincha telefon olib chiqib ketdi. Tergovchi uni so‘roq qilmoqchi.", "1) Aziz o‘g‘rilik uchun jinoiy javobgarlikka tortilishi mumkin; 2) Aziz o‘n olti yoshga to‘lmagani uchun jinoiy javobgarlikka tortilmaydi; 3) so‘roqda pedagogning ishtirok etishi har qanday holatda majburiy; 4) pedagog ishtirok etadigan bo‘lsa, uning ishtirokini ta’minlash tergovchi zimmasiga yuklatiladi; 5) pedagogning huquqlari unga so‘roqdan oldin tushuntiriladi; 6) Azizga garov yoki uy qamog‘i kabi ehtiyot choralari qo‘llanilishi mumkin; 7) himoyachining ishtiroki dastlabki tergov bosqichida majburiy emas."], ["3 ta", "5 ta", "4 ta", "2 ta"]],
-["Hikmatli so‘zlarni ularning mualliflari bilan moslashtiring.", ["1) “Konstitutsiya men hech qachon tark etmaydigan yo‘riqnomadir”; 2) “Barcha jamoalar uchun umumiy va doimiy konstitutsiya yaratish imkonsiz, har bir avlod o‘z konstitutsiyasini yaratish huquqiga ega”; 3) “Siyosiy erkinlik xohlagancha ish tutish degani emas. Agar fuqaro qonunda taqiqlangan ishga qo‘l ursa, erkinlikdan mahrum bo‘ladi”; 4) “Sudyaning ishi qonunni hadya etish emas, balki uni to‘g‘ri talqin qilishdir”; 5) “Davlatning vazifasi insonlarni baxt-saodatga olib borishdir, bu esa ilm va yaxshi axloq yordamida qo‘lga kiritiladi”.", "a) Tomas Jefferson; b) Abu Nasr Forobiy; c) Jan Jak Russo; d) Frensis Bekon; e) Jorj Vashington; f) Sharl Lui de Monteskyo; g) Arastu."], ["1-e; 2-a; 3-c; 4-d; 5-b", "1-a; 2-e; 3-f; 4-d; 5-b", "1-e; 2-a; 3-f; 4-d; 5-g", "1-e; 2-a; 3-f; 4-d; 5-b"]],
-["Fikrlarni tahlil qiling va to‘g‘ri xulosani aniqlang.", ["I. 17 yoshli Akmalni tungi klubga ofitsiant qilib ishga olish qonunchilikni buzadi, chunki", "II. o‘n oltidan o‘n sakkiz yoshgacha bo‘lgan xodimlarning haftalik ish vaqti qirq soatni tashkil etadi."], ["I va II to‘g‘ri, II I ning sababini izohlaydi", "I va II to‘g‘ri, lekin II I ning sababini izohlamaydi", "I to‘g‘ri, II noto‘g‘ri", "I noto‘g‘ri, II to‘g‘ri"]],
-["Jadvalning qaysi qatorlari to‘liq to‘g‘ri?", ["Javobgarlik turi — jazo (chora) — qo‘shimcha belgi:", "1) jinoiy — umrbod ozodlikdan mahrum qilish — ayrim jinoyatlar uchun javobgarlik o‘n to‘rt yoshdan boshlanadi;", "2) ma’muriy — ma’muriy qamoq (3 sutkadan 15 sutkagacha, ayrim hollarda 30 sutkagacha) — o‘n olti yoshga to‘lmagan shaxsga nisbatan ish boshlanmaydi;", "3) intizomiy — hayfsan, jarima, mehnat shartnomasini bekor qilish — jazo qilmish aniqlanganidan keyin bir oy ichida qo‘llaniladi;", "4) jinoiy — majburiy jamoat ishlari — mahkum haq to‘lanadigan jamoat ishlariga jalb qilinadi;", "5) intizomiy — hayfsan — jazo qo‘llanilgan kundan e’tiboran ikki yil amal qiladi;", "6) ma’muriy — intizomiy qismga jo‘natish — faqat harbiy xizmatchilarga nisbatan qo‘llaniladi."], ["1, 2, 3", "1, 2, 5", "2, 3, 4", "1, 3, 6"]],
-["Xalqaro tashkilotlarni O‘zbekiston ularga a’zo bo‘lgan (qabul qilingan) sana bilan moslashtiring.", ["1) Mustaqil davlatlar hamdo‘stligi (MDH); 2) Yevropada xavfsizlik va hamkorlik tashkiloti (YXHT); 3) Birlashgan Millatlar Tashkiloti (BMT); 4) YUNESKO; 5) Shanxay hamkorlik tashkiloti (SHHT).", "a) 1992-yil 2-mart; b) 2001-yil 15-iyun; c) 1991-yil 21-dekabr; d) 1993-yil 26-oktyabr; e) 1992-yil 30-yanvar; f) 1992-yil 2-iyul."], ["1-c; 2-a; 3-e; 4-d; 5-b", "1-c; 2-e; 3-a; 4-d; 5-b", "1-c; 2-e; 3-f; 4-d; 5-b", "1-e; 2-c; 3-a; 4-d; 5-b"]],
-["Matnning qaysi qismlarida xatoga yo‘l qo‘yilgan?", ["(1) Ombudsman instituti birinchi marta Shvetsiyada tashkil etilgan. (2) “Ombudsman” so‘zi shved tilidagi “ombud” so‘zidan kelib chiqqan. (3) Inson huquqlari bo‘yicha milliy institutlarga murojaat qilishda ham sudlardagi kabi davlat boji undiriladi. (4) Oliy Majlisning Inson huquqlari bo‘yicha vakiliga chet el fuqarolari va fuqaroligi bo‘lmagan shaxslar ham murojaat qilishi mumkin. (5) Murojaat qiluvchi o‘zi haqidagi ma’lumotlarni ko‘rsatmasa, uning arizasi anonim hisoblanib, ko‘rib chiqilmaydi. (6) Ombudsmanga murojaat qilib ijobiy natijaga erisha olmagan shaxs darhol xalqaro organga ariza topshira oladi."], ["3, 4", "2, 6", "3, 5, 6", "3, 6"]],
-["Oliy Majlisga oid fikrlardan nechtasi noto‘g‘ri?", ["1) Qonunchilik palatasi bir yuz ellik nafar deputatdan iborat; 2) deputatlarning yetmish besh nafari majoritar, yetmish besh nafari proporsional saylov tizimi asosida saylanadi; 3) Senatga Qoraqalpog‘iston Respublikasi, viloyatlar va Toshkent shahridan teng miqdorda — olti kishidan saylanadi; 4) Senatning to‘qqiz nafar a’zosi Prezident tomonidan tayinlanadi; 5) ayni bir shaxs bir paytning o‘zida Qonunchilik palatasi deputati va Senat a’zosi bo‘lishi mumkin; 6) Qonunchilik palatasi ko‘ppartiyaviylik, umumiy, teng va to‘g‘ridan to‘g‘ri saylov huquqi asosida yashirin ovoz berish yo‘li bilan saylanadi; 7) Oliy Majlisning vakolat muddati yetti yil; 8) quyi palata deputatlarini saylashda xalq bevosita, Senatni shakllantirishda esa vakillari orqali qatnashadi."], ["3 ta", "2 ta", "4 ta", "5 ta"]],
-["Normalarni ulardagi huquq normasi elementlari bilan moslashtiring.", ["1) “Fuqarolar davlat xizmatiga kirishda teng huquqqa egadirlar” (Konstitutsiya, 37-modda); 2) “Saylov kuni yigirma besh yoshga to‘lgan hamda kamida besh yil O‘zbekiston hududida muqim yashayotgan O‘zbekiston fuqarosi Qonunchilik palatasi deputati, shuningdek, Senat a’zosi bo‘lishi mumkin” (Konstitutsiya, 92-modda); 3) “Agar fuqaro doimiy yashash joyini o‘zgartirsa, u bir oy ichida yangi yashash joyi bo‘yicha ro‘yxatdan o‘tishi shart, aks holda unga jarima solinadi”.", "a) faqat dispozitsiya; b) gipoteza va dispozitsiya; c) dispozitsiya va sanksiya; d) gipoteza, dispozitsiya va sanksiya."], ["1-b; 2-a; 3-d", "1-a; 2-b; 3-d", "1-a; 2-b; 3-c", "1-c; 2-b; 3-d"]],
-["Vaziyatni tahlil qiling. Qaysi xulosa to‘g‘ri?", ["16 yoshli Botir mehnat shartnomasi asosida ishlaydi va sud qarori bilan to‘la muomalaga layoqatli deb e’lon qilingan. U do‘stining telefonini ehtiyotsizlik bilan sindirib qo‘ydi, ertasi kuni esa do‘kondan yashirincha quloqchin olib chiqib ketdi."], ["zararni ota-onasi qoplaydi; jinoiy javobgarlik o‘n sakkiz yoshdan boshlangani uchun Botir javobgarlikka tortilmaydi", "zararni Botirning o‘zi qoplaydi; emansipatsiya qilingani uchun u faqat fuqaroviy javobgarlikka tortiladi", "zararni ota-onasi qoplaydi; Botir o‘g‘rilik uchun faqat ma’muriy javobgarlikka tortiladi", "zararni Botirning o‘zi qoplaydi; o‘g‘rilik uchun u jinoiy javobgarlikka tortiladi"]],
-["Jinoiy jazo turlarini Jinoyat kodeksining 43-moddasidagi tartibda — yengilidan og‘iriga qarab joylashtiring.", ["1) ozodlikdan mahrum qilish; 2) jarima; 3) axloq tuzatish ishlari; 4) umrbod ozodlikdan mahrum qilish; 5) muayyan huquqdan mahrum qilish; 6) ozodlikni cheklash; 7) majburiy jamoat ishlari."], ["2, 7, 5, 3, 6, 1, 4", "2, 5, 3, 7, 6, 1, 4", "2, 5, 7, 3, 6, 1, 4", "5, 2, 7, 3, 6, 1, 4"]],
-["Quyidagilardan O‘zbekiston Respublikasi Prezidentining vakolatlariga kirmaydiganlarini aniqlang.", ["1) viloyatlar hokimlarini tayinlash; 2) Konstitutsiyaviy sud sudyalarini saylash; 3) qonunlarni imzolash va e’lon qilish; 4) qonunlarni qabul qilish; 5) sudlar tomonidan hukm qilingan shaxslarni afv etish; 6) amnistiya to‘g‘risidagi hujjatni qabul qilish; 7) ordenlar va medallar bilan mukofotlash; 8) tuman hokimlarini tayinlash; 9) Davlat xavfsizlik xizmati raisini tayinlash."], ["2, 4, 8", "2, 4, 6, 8", "2, 4, 6, 9", "4, 6, 8"]],
-["Moddalar haqidagi hukmlarning yakuniy xulosasini aniqlang.", ["I. Konstitutsiyaning 28-moddasida aybsizlik prezumpsiyasi mustahkamlangan.", "II. Konstitutsiyaning 30-moddasiga ko‘ra hech kim ayni bir jinoyat uchun takroran hukm qilinishi mumkin emas.", "III. Jinoyat kodeksining 81-moddasida jismoniy shaxslarning jinoiy javobgarlik yoshi belgilangan.", "IV. Konstitutsiyaning 92-moddasida Prezidentlikka nomzodga qo‘yiladigan talablar belgilangan."], ["I-to‘g‘ri; II-to‘g‘ri; III-noto‘g‘ri; IV-noto‘g‘ri", "I-to‘g‘ri; II-to‘g‘ri; III-to‘g‘ri; IV-noto‘g‘ri", "I-to‘g‘ri; II-noto‘g‘ri; III-noto‘g‘ri; IV-noto‘g‘ri", "I-to‘g‘ri; II-to‘g‘ri; III-noto‘g‘ri; IV-to‘g‘ri"]]
-],
-key:"DCCFFEEEEEDFDCCFFECEEDFECEDDDD",
-tahlil:[
-["Apatrid — yunoncha “bevatan” (c); immunitet — lotincha “biror narsadan ozod qilish” (e); kvorum — “yetarlicha hozirlik” (a); referendum — “bildirilishi shart bo‘lgan narsa” (d); naturallashtirish — fransuzcha “tabiiy” (b). f) “farqlash” — diskriminatsiya atamasi, ortiqcha.", "8-sinf darsligi (2024), yuridik atamalarning izohli lug‘ati (122–125-betlar)"],
-["1-modda: “O‘zbekiston — boshqaruvning respublika shakliga ega bo‘lgan suveren, demokratik, huquqiy, ijtimoiy va dunyoviy davlat”. Teokratik (3), totalitar (6) va federativ (8) kirmaydi.", "8-sinf darsligi (2024): 4–5-dars “Davlat” (20-bet), Konstitutsiya, 1-modda"],
-["Demokratiya — yunoncha; unitar — lotincha “oddiy”, “yagona”; suverenitet — fransuzcha “oliy hokimiyat”; tushunchani fransuz huquqshunosi Jan Boden kiritgan.", "8-sinf darsligi (2024): atamalar lug‘ati (123–126-betlar); 9-sinf darsligi (2024): “Davlat suvereniteti” mavzusi"],
-["Ikkala gap ham to‘g‘ri. Jinoiy javobgarlik umumiy holda 16 yoshdan, o‘g‘rilik uchun esa 14 yoshdan boshlanadi — II gap aynan I gapning sababini izohlaydi.", "8-sinf darsligi (2024): 28-dars “Jinoyat qonunchiligida voyaga yetmaganlar” (95-bet), JK 17-modda"],
-["Uch qatorning har birida bitta javobgarlik turining choralari: intizomiy, ma’muriy, jinoiy. Ortiqcha qator turli javobgarliklarni aralashtirgan: hayfsan — intizomiy, ma’muriy qamoq — ma’muriy, axloq tuzatish ishlari — jinoiy.", "8-sinf darsligi (2024): 21–22, 23–24-darslar “Yuridik javobgarlik” (77–83-betlar)"],
-["To‘g‘ri: 1, 2, 3, 5, 7, 8. Noto‘g‘ri: 4 — Vatikan teokratik monarxiya (noan’anaviyda monarx saylanadi, masalan Malayziya); 6 — Fransiya va Janubiy Koreya prezidentlik respublikasi emas. Jami 6 ta.", "8-sinf darsligi (2024): 7–8-dars “Davlat shakllari” (25–29-betlar)"],
-["Fuqarolikni yo‘qotish asoslaridan biri: voyaga yetmaganligi sababli xorijiy fuqarolikni tug‘ilishi yoki ota-onasining fuqaroligi bo‘yicha olgan shaxs yigirma bir yoshga to‘lganida undan rasman chiqmagan bo‘lsa. Konsullik hisobida turishi bu asosni bekor qilmaydi.", "9-sinf darsligi (2024): 12-dars “Fuqarolikni tugatish va tiklash asoslari” (43-bet)"],
-["I to‘g‘ri (FK 17-modda). II noto‘g‘ri — to‘la muomala layoqati o‘n sakkiz yoshda vujudga keladi. III to‘g‘ri (FK 22-modda). IV to‘g‘ri.", "8-sinf darsligi (2024): 27-dars “Fuqarolik qonunchiligida voyaga yetmaganlar” (91-bet), FK 17, 22-moddalar"],
-["1 — Amir Temur, “Davlat funksiyasi” (d); 2 — Mahmud az-Zamaxshariy, “Davlat shakllari” (b); 3 — Aflotun, “Huquq manbalari” (f); 4 — Mahmudxo‘ja Behbudiy, “Huquq normasi” (a); 5 — Gyote, “Huquqbuzarlik” (c). “Huquqiy munosabatlar” (Russo) va “Oila qonunchiligi” (Arastu) ortiqcha.", "8-sinf darsligi (2024): darslar boshidagi epigraflar (21, 24, 40, 46, 69-betlar)"],
-["Huquq (I): baholash mezoni “qonuniy-noqonuniy” (1), zarur hollarda davlat majburlovi bilan qaror topadi (3), normativ-huquqiy hujjatlarda aniq ko‘rinishga ega (6). Axloq (II): do‘stlik, muhabbatgacha kengroq doirani tartibga soladi (2), davlat yordamisiz shakllanadi (4), zid harakat uchun aniq jazo ko‘zda tutilmaydi (7). Umumiy (III): aholining aksariyat qismining qarashlari ham axloqda, ham huquqda aks etadi (5).", "8-sinf darsligi (2024): 10-dars “Axloq va huquq” (35–38-betlar)"],
-["Loyiha tayyorlanadi (6) → Qonunchilik palatasiga kiritiladi (2) → palata qonunni qabul qiladi (4) → Senat ma’qullaydi (3) → Prezidentga yuboriladi (5) → Prezident imzolaydi va e’lon qiladi (1).", "9-sinf darsligi (2024): Oliy Majlis va Prezident mavzulari (Senat qonunni Prezidentga imzolash uchun yuboradi; Prezident qonunlarni imzolaydi va e’lon qiladi)"],
-["1, 2, 4 to‘g‘ri. 3 — Konstitutsiyaviy sud sudyalarini Prezident taqdimiga binoan Senat saylaydi. 5 — tuman hokimini viloyat hokimi tayinlaydi, xalq deputatlari Kengashi tasdiqlaydi.", "9-sinf darsligi (2024): Prezident, Vazirlar Mahkamasi, sud hokimiyati, mahalliy davlat hokimiyati mavzulari"],
-["Ikkala gap to‘g‘ri: immunitet sudya, deputat, senator va davlat boshlig‘iga beriladi; Senatning 9 a’zosini Prezident tayinlaydi. Ammo daxlsizlik barcha senatorlarga tegishli va tayinlanish bilan bog‘liq emas — II gap I ni izohlamaydi.", "8-sinf darsligi (2024): “Immunitet” atamasi (124-bet); 9-sinf darsligi (2024): “Oliy Majlis” mavzusi"],
-["Siyosiy partiya — kamida 20 ming imzo; jamoat birlashmasi — kamida 10 nafar fuqaro tashabbusi; OAV — kamida olti oyda bir marta; yoshlar — 14 yoshdan 30 yoshgacha.", "9-sinf darsligi (2024): fuqarolik jamiyati institutlari mavzusi"],
-["Xato: (2) — majburlov chorasi sanksiyada bayon etiladi, dispozitsiyada esa xulq-atvor qoidasining o‘zi; (6) — tushuncha qonunning 3-moddasida berilgan. Qolgan qismlar to‘g‘ri.", "8-sinf darsligi (2024): 11–12-dars “Huquq manbalari”, 13-dars “Huquq normasi” (40–48-betlar)"],
-["To‘g‘ri: 1, 2, 4, 6, 7. Noto‘g‘ri: 3 — soddalashtirilgan tartib vatandoshlarga qo‘llaniladi; 5 — muddat yetti yil; 8 — tirikchilikning qonuniy manbayi umumiy tartibning shartlaridan biri. Jami 5 ta.", "9-sinf darsligi (2024): 10-dars “Fuqarolikning umumiy qoidalari”, 12-dars “Fuqarolikni tugatish va tiklash asoslari” (38–45-betlar)"],
-["Ariza (I) — huquq va erkinliklarni amalga oshirish uchun ko‘mak so‘rash (1), masalan xorijda davolanish uchun yordam so‘rash (4). Shikoyat (II) — buzilgan huquqlarni tiklashni talab qilish (2), masalan tungi osoyishtalik buzilishi (5) yoki noqonuniy ishdan bo‘shatilgan xodimning ishga tiklashni talab qilishi (6). Ikkalasi ham murojaat turi (3).", "9-sinf darsligi (2024): murojaat qilish huquqi mavzusi; atamalar lug‘ati (“Ariza”, “Shikoyat”)"],
-["I, II, IV to‘g‘ri. III noto‘g‘ri — bu beparvolikning ta’rifi; o‘z-o‘ziga ishonishda shaxs oqibatlarni oldindan ko‘radi, lekin ularning oldini olishga asossiz ishonadi.", "8-sinf darsligi (2024): 19–20-dars “Huquqbuzarlik” (69–75-betlar)"],
-["To‘g‘ri: 1 (o‘g‘rilik uchun 14 yoshdan), 4, 5 (JPK 554-modda), 6. Noto‘g‘ri: 2; 3 — pedagog tergovchining ixtiyoriga ko‘ra yoki himoyachi, qonuniy vakil iltimosiga binoan ishtirok etishi mumkin, har doim majburiy emas; 7 — voyaga yetmaganlar ishlarida himoyachi barcha bosqichlarda ishtirok etishi shart. Jami 4 ta.", "8-sinf darsligi (2024): 28-dars (95–99-betlar), JPK 554-modda; 29–30-darslar “Voyaga yetmaganlarning javobgarligi”"],
-["1 — Jorj Vashington (e); 2 — Tomas Jefferson (a); 3 — Monteskyo (f); 4 — Frensis Bekon (d); 5 — Abu Nasr Forobiy (b). Jan Jak Russo va Arastu 8-sinf epigraflari mualliflari — ortiqcha.", "9-sinf darsligi (2024): darslar boshidagi epigraflar"],
-["I to‘g‘ri — voyaga yetmaganlarni tungi kafe va klublarda ishlatish taqiqlanadi. II noto‘g‘ri — 16–18 yoshlilar uchun haftalik ish vaqti 36 soatdan oshmaydi.", "8-sinf darsligi (2024): 33-dars “Mehnat qonunchiligida voyaga yetmaganlar” (116-bet), MK 412-modda"],
-["1, 2, 3 to‘g‘ri. 4 — majburiy jamoat ishlari haq to‘lanmaydigan ishlar (haq to‘lanadigan jamoat ishlari — ma’muriy jazo); 5 — intizomiy jazo bir yil amal qiladi; 6 — intizomiy qismga jo‘natish jinoiy jazo.", "8-sinf darsligi (2024): 21–24-darslar “Yuridik javobgarlik”, 29–30-darslar; MK 312-modda"],
-["MDH — 1991-yil 21-dekabr (c); YXHT — 1992-yil 30-yanvar (e); BMT — 1992-yil 2-mart (a); YUNESKO — 1993-yil 26-oktyabr (d); SHHT — 2001-yil 15-iyun (b). f) 1992-yil 2-iyul — ortiqcha (tuzoq).", "9-sinf darsligi (2024): “O‘zbekistonning tashqi siyosati” mavzusi"],
-["Xato: (3) — milliy institutlarga murojaatda sudlardan farqli ravishda davlat boji undirilmaydi; (6) — darhol xalqaro organga murojaat qilib bo‘lmaydi, avval barcha ichki himoya vositalaridan foydalanish lozim.", "9-sinf darsligi (2024): “Inson huquq va erkinliklarining kafolatlanishi” mavzusi"],
-["Noto‘g‘ri: 3 — har bir hududdan to‘rt kishidan saylanadi; 5 — bir paytda deputat ham, senator ham bo‘lish mumkin emas; 7 — vakolat muddati besh yil. Qolganlari to‘g‘ri. Jami 3 ta noto‘g‘ri.", "9-sinf darsligi (2024): “Oliy Majlis” mavzusi"],
-["1-a: 37-modda darslikda faqat dispozitsiyadan iborat normaga misol qilib keltirilgan. 2-b: “saylov kuni 25 yoshga to‘lgan, 5 yil muqim yashayotgan fuqaro” — gipoteza (shart), “deputat… bo‘lishi mumkin” — dispozitsiya; sanksiya yo‘q. 3-d: “agar… o‘zgartirsa” — gipoteza, “ro‘yxatdan o‘tishi shart” — dispozitsiya, “aks holda jarima” — sanksiya.", "8-sinf darsligi (2024): 13-dars “Huquq normasi” (47–49-betlar); 8-sinf moddalar qo‘llanmasi: Konstitutsiya 37, 92-moddalar"],
-["Emansipatsiya qilingan voyaga yetmagan o‘z majburiyatlari, jumladan zarar yetkazganlik uchun mustaqil javob beradi — zararni o‘zi qoplaydi. Emansipatsiya jinoiy javobgarlikka ta’sir qilmaydi: o‘g‘rilik uchun javobgarlik 14 yoshdan, 16 yoshli Botir esa jinoiy javobgarlikka tortiladi.", "8-sinf darsligi (2024): 27-dars (emansipatsiya), 28-dars (jinoiy javobgarlik yoshi), JK 17-modda"],
-["JK 43-moddasidagi tartib: jarima (2) → muayyan huquqdan mahrum qilish (5) → majburiy jamoat ishlari (7) → axloq tuzatish ishlari (3) → ozodlikni cheklash (6) → ozodlikdan mahrum qilish (1) → umrbod ozodlikdan mahrum qilish (4). (Harbiy xizmatchilarga oid xizmat bo‘yicha cheklash va intizomiy qismga jo‘natish bu ro‘yxatga kiritilmadi.)", "8-sinf darsligi (2024): 23–24-dars “Yuridik javobgarlikning oqibatlari” (81–84-betlar), JK 43-modda"],
-["Kirmaydi: 2 — sudyalarni Prezident taqdimiga binoan Senat saylaydi; 4 — qonunni Qonunchilik palatasi qabul qiladi; 6 — Prezident amnistiya haqida Senatga taqdimnoma kiritadi, hujjatni Senat qabul qiladi; 8 — tuman hokimini viloyat hokimi tayinlaydi.", "9-sinf darsligi (2024): “O‘zbekiston Respublikasining Prezidenti” mavzusi (Konstitutsiya, 109-modda)"],
-["I, II to‘g‘ri. III noto‘g‘ri — javobgarlik yoshi JK 17-moddasida; 81-moddada 18 yoshga to‘lmasdan jinoyat sodir etganlarga nisbatan jazo tizimi. IV noto‘g‘ri — 92-modda Qonunchilik palatasi deputati va Senat a’zosiga qo‘yiladigan talablar haqida.", "8-sinf moddalar qo‘llanmasi: Konstitutsiya 28, 30, 92-moddalar; JK 17, 81-moddalar"]
-]
-};
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
   asosiy:{
@@ -634,7 +598,7 @@ const TESTS={
     desc:"Huquq fanidan namunaviy olimpiada testida",copy:"Huquq olimpiadasi (8–9-sinf)"
   },
   pro:{
-    q:PRO.q,key:PRO.key,tahlil:PRO.tahlil,skey:"huquq-pro-v1",
+    q:null,key:"",tahlil:null,skey:"huquq-pro-v1",paid:true, // savollar, kalit va tahlil Google skriptdan keladi
     locked:true,
     endpoint:EP,
     title:"OLIMPIADA PRO TESTI",doc:"Olimpiada PRO testi",org:"Olimpiada PRO testi · 8–9-sinflar",
@@ -647,8 +611,8 @@ const decodeKey=k=>k.split("").map((c,i)=>(c.charCodeAt(0)-67+4-(i%4)+4)%4);
 const qTest=new URLSearchParams(location.search).get("test");
 const TID=hasTest(qTest)?qTest:""; // bo'sh — testni tanlash sahifasi
 const T=TESTS[TID||"asosiy"];
-const Q=T.q;
-const K=decodeKey(T.key);
+let Q=T.q;
+let K=T.key?decodeKey(T.key):[];
 const PTS=[0.9,1.5,2.6];
 const SEC=["I bo‘lim · Oson","II bo‘lim · O‘rtacha","III bo‘lim · Qiyin"];
 const L=["A","B","C","D"];
@@ -666,6 +630,14 @@ const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
 function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
+// Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
+let paid={};
+function savePaid(){try{localStorage.setItem(SKEY+"-data",JSON.stringify(paid))}catch(e){}}
+function loadPaid(){try{return JSON.parse(localStorage.getItem(SKEY+"-data")||"null")||{}}catch(e){return {}}}
+function applyPaid(){if(paid.q)Q=paid.q;if(paid.key){K=paid.key.split("").map(c=>L.indexOf(c));T.tahlil=paid.tahlil||null}}
+function tgInfo(){const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
+  return {tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):""}}
+const qs=o=>Object.keys(o).map(k=>k+"="+encodeURIComponent(o[k])).join("&");
 let toastT=0;
 function toast(msg,kind){const t=$("toast");t.textContent=msg;t.className="toast"+(kind?" "+kind:"");t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,6000)}
 
@@ -740,8 +712,23 @@ $("startBtn").addEventListener("click",()=>{
   const raw=$("fio").value.trim().replace(/\s+/g," ");
   const words=raw.split(" ").filter(w=>w.replace(/[^\p{L}]/gu,"").length>=2);
   if(words.length<2){$("startErr").textContent="Familiya va ismingizni to‘liq yozing (masalan: Karimov Aziz).";$("fio").focus();return}
+  if(T.paid){startPaid(raw);return}
   $("startErr").textContent="";name=raw;t0=Date.now();cur=0;save();enterTest();
 });
+function startPaid(raw){
+  const code=$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
+  const btn=$("startBtn");btn.disabled=true;$("startErr").textContent="Kod tekshirilmoqda…";
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId},tgInfo()))).then(r=>r.json()).then(d=>{
+    btn.disabled=false;
+    if(!d.ok||!Array.isArray(d.q)){
+      const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
+        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas."};
+      $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
+    paid={code,q:d.q};savePaid();applyPaid();
+    $("startErr").textContent="";name=raw;t0=Date.now()-(Number(d.elapsed)||0)*1000;cur=0;save();enterTest();
+  }).catch(()=>{btn.disabled=false;$("startErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
+}
 function flip(on){$("startView").classList.toggle("flip",on);
   const wide=matchMedia("(min-width:641px)").matches;
   $("formPane").inert=on&&wide;$("rulesPane").inert=!on&&wide;
@@ -762,10 +749,25 @@ document.addEventListener("visibilitychange",()=>{
 });
 
 function finish(){
-  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();renderResult(false);send();
+  done=true;endAt=timeUp?t0+LIMIT*1000:Date.now();clearInterval(timer);save();
+  if(T.paid){finishPaid(false);return}
+  renderResult(false);send();
 }
+// Pullik test: ball serverda hisoblanadi, kalit va tahlil shundan keyin keladi
+function finishPaid(again){
+  $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("pendView").hidden=false;
+  document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;
+  $("pendMsg").textContent="Natija hisoblanmoqda…";$("pendRetry").hidden=true;
+  fetch(ENDPOINT+"?"+qs({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0}))
+    .then(r=>r.json()).then(d=>{
+      if(!d.ok||!d.key)throw new Error(d.error||"xato");
+      paid.key=d.key;paid.tahlil=d.tahlil;savePaid();applyPaid();sent=true;save();
+      $("pendView").hidden=true;renderResult(again);
+    }).catch(()=>{$("pendMsg").textContent="Natijani yuborib bo‘lmadi. Internetni tekshirib, «Qayta urinish» tugmasini bosing. Javoblaringiz saqlangan.";$("pendRetry").hidden=false});
+}
+$("pendRetry").addEventListener("click",()=>finishPaid(false));
 function send(){
-  if(!ENDPOINT||sent)return;
+  if(!ENDPOINT||sent||T.paid)return;
   const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
   const payload={test:TID||"asosiy",name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
     tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId};
@@ -936,6 +938,7 @@ function loadAdmin(){
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
     $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=d.rows||[];renderAdmin();
+    $("aCodes").hidden=!TESTS[adminTest].paid;if(TESTS[adminTest].paid)loadCodes();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
 let adminRows=[];
@@ -945,7 +948,7 @@ function renderAdmin(){
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
     const d=document.createElement("div");const b=document.createElement("b");b.textContent=v;d.append(b,document.createTextNode(k));st.appendChild(d)});
-  const box=$("aRows");box.textContent="";let rank=0;const AK=decodeKey(TESTS[adminTest].key);
+  const box=$("aRows");box.textContent="";let rank=0;const AK=TESTS[adminTest].key?decodeKey(TESTS[adminTest].key):[];
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
   rows.forEach(r=>{
@@ -958,12 +961,33 @@ function renderAdmin(){
     m.append(kv("Sana",r.sana));
     c.appendChild(m);
     const ja=String(r.javoblar||"");
-    if(ja){const w=[];AK.forEach((k,i)=>{const a=ja[i]||"-";if(a!==L[k])w.push((i+1)+" ("+a+"→"+L[k]+")")});
+    if(r.xato&&!AK.length){const wr=mk("div","wr");wr.append(mk("b",null,"Xato savollar: "),document.createTextNode(r.xato));c.appendChild(wr)}
+    else if(ja){const w=[];AK.forEach((k,i)=>{const a=ja[i]||"-";if(a!==L[k])w.push((i+1)+" ("+a+"→"+L[k]+")")});
       const wr=mk("div","wr");wr.append(mk("b",null,"Xato savollar ("+w.length+"): "),document.createTextNode(w.length?w.join(", "):"yo‘q"));c.appendChild(wr)}
     box.appendChild(c);
   });
   if(!rows.length)box.appendChild(mk("div","note","Hozircha natija yo‘q."));
 }
+function loadCodes(){
+  const pw=$("aPass").value;$("cMsg").textContent="Kodlar yuklanmoqda…";
+  fetch(ENDPOINT+"?"+qs({action:"codes",key:pw})).then(r=>r.json()).then(d=>{
+    if(d.error){$("cMsg").textContent="Kodlarni olib bo‘lmadi. Google skript yangilanganini tekshiring.";return}
+    $("cMsg").textContent="";const all=d.codes||[],free=all.filter(c=>c.holat==="bo‘sh"),used=all.filter(c=>c.holat!=="bo‘sh");
+    const st=$("cStats");st.textContent="";
+    [["Jami kod",all.length],["Bo‘sh",free.length],["Ishlatilgan",used.length]].forEach(([k,v])=>{const e=document.createElement("div");const b=document.createElement("b");b.textContent=v;e.append(b,document.createTextNode(k));st.appendChild(e)});
+    $("cFree").textContent=free.length?free.map(c=>c.kod).join("\n"):"Bo‘sh kod qolmadi — yangilarini yarating.";
+    const box=$("cUsed");box.textContent="";
+    used.forEach(c=>{const r=document.createElement("div");const b=document.createElement("b");b.textContent=c.kod;
+      r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball":"yechmoqda")+" · "+c.sana));box.appendChild(r)});
+    if(!used.length)box.textContent="Hozircha yo‘q.";
+  }).catch(()=>{$("cMsg").textContent="Ulanib bo‘lmadi."});
+}
+$("cGen").addEventListener("click",()=>{
+  const n=Math.max(1,Math.min(200,Number($("cNum").value)||10));$("cGen").disabled=true;$("cMsg").textContent="Yaratilmoqda…";
+  fetch(ENDPOINT+"?"+qs({action:"gen",key:$("aPass").value,n})).then(r=>r.json()).then(d=>{$("cGen").disabled=false;
+    if(!d.ok){$("cMsg").textContent="Kod yaratib bo‘lmadi.";return}loadCodes()}).catch(()=>{$("cGen").disabled=false;$("cMsg").textContent="Ulanib bo‘lmadi."});
+});
+$("cCopy").addEventListener("click",()=>{try{navigator.clipboard.writeText($("cFree").textContent).then(()=>$("cMsg").textContent="Nusxalandi.")}catch(e){}});
 $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
 $("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
@@ -979,7 +1003,8 @@ function renderHome(){
     const a=mk(closed?"div":"a","tcard"+(id==="pro"?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
-    if(t.tahlil)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
+    if(t.paid)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
+    if(t.tahlil||t.paid)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
     let btn="Testni boshlash";
     if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
     else if(closed)btn="Yechib bo‘lmaydi";
@@ -1000,11 +1025,14 @@ if(location.hash==="#admin"){
 (function boot(){
   $("backLink").hidden=false;
   const st=load();
-  if(T.locked&&!(st&&st.done)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
+  if(T.paid){paid=loadPaid();applyPaid();$("codeField").hidden=false;
+    const li=document.createElement("li");li.textContent="Testga kirish uchun bir martalik kod kerak. Kod faqat bitta qurilmada ishlaydi.";document.querySelector(".rules").prepend(li)}
+  if(T.locked&&!new URLSearchParams(location.search).has("sinov")&&!(st&&st.done)){$("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("lockedView").hidden=false;return}
   if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
-  if(done){started=true;renderResult(true);send();return}
+  if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
+  if(done){started=true;if(T.paid&&!paid.key)finishPaid(true);else{renderResult(true);send()}return}
   if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
   enterTest();toast("Test qolgan joyidan davom ettirildi. Vaqt to‘xtamagan.");
 })();
