@@ -103,9 +103,6 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .fb .note{margin:0;font-size:14px}
 .fb textarea{font:inherit;font-size:16px;line-height:1.5;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:100%;resize:vertical;min-height:140px}
 .fb textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
-.fbchips{display:flex;gap:6px;flex-wrap:wrap}
-.fbchips button{font-family:var(--f-ui);font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
-.fbchips button:hover{border-color:var(--navy);color:var(--navy)}
 .fbcount{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--f-ui);font-size:13px;color:var(--muted)}
 .fbcount .ok{color:var(--ok);font-weight:600}
 .afb{display:grid;gap:10px}
@@ -521,7 +518,6 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   <section class="card fb">
     <h2>Test haqida fikringiz</h2>
     <p class="note">Natijangizni ko‘rishdan oldin test haqida fikr bildiring: savollar qanday edi, nima yoqdi, nimani yaxshilash kerak. Fikringiz testlarni yaxshilashga yordam beradi.</p>
-    <div class="fbchips" id="fbChips"></div>
     <textarea id="fbText" rows="6" maxlength="1500" placeholder="Fikringizni shu yerga yozing…"></textarea>
     <div class="fbcount"><span id="fbCount">0 / 50 harf</span><span class="err" id="fbErr"></span></div>
     <div><button class="btn" id="fbSend" type="button" disabled>Fikrni yuborish va natijani ko‘rish</button></div>
@@ -887,9 +883,6 @@ const fbLetters=t=>(t.match(/\p{L}/gu)||[]).length;
 function showFeedback(){
   $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("fbView").hidden=false;
   document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
-  const ch=$("fbChips");if(!ch.children.length)["Savollar qiyin edi","Savollar oson edi","Vaqt yetarli edi","Vaqt yetmadi","Savollar qiziq edi","Interfeys qulay"].forEach(t=>{
-    const b=document.createElement("button");b.type="button";b.textContent=t;
-    b.addEventListener("click",()=>{const ta=$("fbText");ta.value=(ta.value.trim()?ta.value.trim()+". ":"")+t;fbUpdate();ta.focus()});ch.appendChild(b)});
   fbUpdate();
 }
 function fbUpdate(){
