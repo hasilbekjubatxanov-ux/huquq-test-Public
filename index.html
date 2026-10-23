@@ -1178,7 +1178,7 @@ function loadAdmin(){
   fetch(ep+"?key="+encodeURIComponent(pw)+"&test="+adminTest).then(r=>r.json()).then(d=>{
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
-    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism));renderAdmin();
+    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));renderAdmin();
     $("aCodes").hidden=!TESTS[adminTest].paid;if(TESTS[adminTest].paid)loadCodes();
     loadFeedback();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
@@ -1241,7 +1241,7 @@ function loadCodes(){
     renderFree(free);
     const box=$("cUsed");box.textContent="";
     used.forEach(c=>{const r=document.createElement("div");const b=document.createElement("b");b.textContent=c.kod;
-      r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball"+(c.urinishlar>1?" · jami "+c.urinishlar+" marta yechgan":""):"yechmoqda")+" · "+c.sana));box.appendChild(r)});
+      r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball":"yechmoqda")+" · "+c.sana));box.appendChild(r)});
     if(!used.length)box.textContent="Hozircha yo‘q.";
   }).catch(()=>{$("cMsg").textContent="Ulanib bo‘lmadi."});
 }

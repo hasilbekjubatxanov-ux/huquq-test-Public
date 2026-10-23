@@ -170,13 +170,9 @@ function tugatish_(p) {
   if (!k || !egasi_(k, device, tgId)) return { error: "kod" };
   let javoblar, h;
   if (String(k.v[1]) === "tugagan" && k.v[11] instanceof Date) {
-    // Qayta urinish natijasi: "PRO test" varag'iga takroriy sifatida yoziladi
-    javoblar = javoblar_(p.answers);
-    const soniya = Math.min(LIMIT, Math.max(0, Math.floor((Date.now() - k.v[11].getTime()) / 1000)));
-    const urinish = (Number(k.v[10]) || 1) + 1;
-    h = natijaYoz_("pro", { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves,
-      timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod, urinish);
-    k.sh.getRange(k.row, 11, 1, 2).setValues([[urinish, ""]]);
+    // Qayta urinish: faqat o'quvchiga ko'rsatiladi, jadvalga va reytingga yozilmaydi
+    h = hisobla_("pro", javoblar_(p.answers));
+    k.sh.getRange(k.row, 11, 1, 2).setValues([[(Number(k.v[10]) || 1) + 1, ""]]);
     return { ok: true, retake: true, key: TESTLAR.pro.kalit, tahlil: PRO_DATA.tahlil, ball: h.ball };
   } else if (String(k.v[1]) === "tugagan") {
     javoblar = javoblar_(k.v[9]);
