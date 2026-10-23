@@ -53,6 +53,27 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .scale span{border:1px solid var(--line);border-radius:6px;padding:3px 9px;background:var(--paper)}
 .scale b{font-variant-numeric:tabular-nums}
 
+.back{font-family:var(--f-ui);font-size:13px;font-weight:600;text-decoration:none;justify-self:start;margin-top:4px}
+.home{display:grid;gap:14px}
+.tlist{display:grid;gap:14px}
+.tcard{display:grid;gap:8px;background:var(--paper);border:1px solid var(--line);border-left:6px solid var(--navy);border-radius:12px;padding:18px 20px;text-decoration:none;color:var(--ink)}
+.tcard.pro{border-left-color:var(--gold)}
+.tcard:hover{border-color:var(--navy)}
+.tcard:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.tcard .tt{font-family:var(--f-display);font-size:20px;font-weight:700;color:var(--navy);line-height:1.25}
+.tcard.pro .tt{color:var(--gold)}
+.tcard .tm{font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+.tcard .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tcard .tag{font-family:var(--f-ui);font-size:12px;border:1px solid var(--line);border-radius:999px;padding:2px 10px;color:var(--muted)}
+.tcard .tag.done{border-color:var(--ok);color:var(--ok)}
+.tcard .btn{justify-self:start;margin-top:4px}
+.tcard.pro .btn{background:var(--gold);border-color:var(--gold)}
+.atabs{display:flex;gap:8px;flex-wrap:wrap}
+.atabs button[aria-pressed="true"]{background:var(--navy);color:var(--paper)}
+.arow2 .wr{grid-column:1 / -1;font-family:var(--f-ui);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.arow2 .wr b{color:var(--bad);font-weight:600}
+@media (min-width:900px){.arow2 .wr{order:5}}
+
 .card{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:20px}
 .auth{position:relative;display:grid;grid-template-columns:1fr 1fr;min-height:340px;background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .pane{padding:30px 28px;display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:0}
@@ -272,12 +293,17 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="brand">Jubatkhanov | Huquq</div>
       <a class="tg" href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg>Telegram kanal</a>
     </div>
+    <a class="back" id="backLink" href="./" hidden>← Barcha testlar</a>
     <h1 id="hTitle">Huquq fanidan namunaviy olimpiada testi</h1>
     <div class="meta" id="hMeta">8–9-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50</div>
     <div class="scale">
       <span>1–10: <b>0,9</b> ball</span><span>11–20: <b>1,5</b> ball</span><span>21–30: <b>2,6</b> ball</span>
     </div>
   </header>
+
+  <section id="homeView" class="home" hidden>
+    <div class="tlist" id="tlist"></div>
+  </section>
 
   <section id="startView" class="auth">
     <div class="pane form-pane" id="formPane">
@@ -421,6 +447,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
 <div class="wrap" id="adminView" hidden>
   <section class="card admin">
     <div class="brand">Admin · Natijalar reytingi</div>
+    <div class="atabs" id="aTabs" role="group" aria-label="Test"></div>
     <div class="arow" id="aLogin">
       <label class="field" for="aPass" style="flex:1;min-width:180px"><span class="note">Parol</span><input id="aPass" type="password" autocomplete="current-password"></label>
       <button class="btn" id="aGo" type="button">Ko‘rish</button>
@@ -548,20 +575,29 @@ tahlil:[
 ["I, II to‘g‘ri. III noto‘g‘ri — javobgarlik yoshi JK 17-moddasida; 81-moddada 18 yoshga to‘lmasdan jinoyat sodir etganlarga nisbatan jazo tizimi. IV noto‘g‘ri — 92-modda Qonunchilik palatasi deputati va Senat a’zosiga qo‘yiladigan talablar haqida.", "8-sinf moddalar qo‘llanmasi: Konstitutsiya 28, 30, 92-moddalar; JK 17, 81-moddalar"]
 ]
 };
-const TID=new URLSearchParams(location.search).get("test")==="pro"?"pro":"";
-const T=TID==="pro"?{
-  q:PRO.q,key:PRO.key,tahlil:PRO.tahlil,skey:"huquq-pro-v1",
-  endpoint:"", // PRO test natijalari uchun alohida Google Apps Script manzili
-  title:"OLIMPIADA PRO TESTI",doc:"Olimpiada PRO testi",org:"Olimpiada PRO testi · 8–9-sinflar",
-  desc:"Huquq fanidan Olimpiada PRO testida",copy:"Olimpiada PRO testi (8–9-sinf)"
-}:{
-  q:Q0,key:"FDFDCCFDCCFDCCFFECFDDCCFFECFFE",tahlil:null,skey:"huquq89-olimpiada-v1",
-  endpoint:"https://script.google.com/macros/s/AKfycbyugJIc9g1-4fIJVh9pwrfrw3ZSadvPtiX1OUAaVbGllzv5XtGUIG0n2TQbiCpLZZEC/exec", // Google Apps Script manzili
-  title:"Huquq fanidan namunaviy olimpiada testi",doc:"",org:"Huquq fanidan olimpiada testi · 8–9-sinflar",
-  desc:"Huquq fanidan namunaviy olimpiada testida",copy:"Huquq olimpiadasi (8–9-sinf)"
+const TESTS={
+  asosiy:{
+    q:Q0,key:"FDFDCCFDCCFDCCFFECFDDCCFFECFFE",tahlil:null,skey:"huquq89-olimpiada-v1",
+    endpoint:"https://script.google.com/macros/s/AKfycbyugJIc9g1-4fIJVh9pwrfrw3ZSadvPtiX1OUAaVbGllzv5XtGUIG0n2TQbiCpLZZEC/exec", // Google Apps Script manzili
+    title:"Huquq fanidan namunaviy olimpiada testi",doc:"Huquq olimpiadasi testi",org:"Huquq fanidan olimpiada testi · 8–9-sinflar",
+    meta:"8–9-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50",
+    desc:"Huquq fanidan namunaviy olimpiada testida",copy:"Huquq olimpiadasi (8–9-sinf)"
+  },
+  pro:{
+    q:PRO.q,key:PRO.key,tahlil:PRO.tahlil,skey:"huquq-pro-v1",
+    endpoint:"", // yangi Google Apps Script ulangach yoziladi
+    title:"OLIMPIADA PRO TESTI",doc:"Olimpiada PRO testi",org:"Olimpiada PRO testi · 8–9-sinflar",
+    meta:"8–9-sinflar · Final test · 30 ta savol · 60 daqiqa · Maksimal ball: 50",
+    desc:"Huquq fanidan Olimpiada PRO testida",copy:"Olimpiada PRO testi (8–9-sinf)"
+  }
 };
+const hasTest=id=>Object.prototype.hasOwnProperty.call(TESTS,id);
+const decodeKey=k=>k.split("").map((c,i)=>(c.charCodeAt(0)-67+4-(i%4)+4)%4);
+const qTest=new URLSearchParams(location.search).get("test");
+const TID=hasTest(qTest)?qTest:""; // bo'sh — testni tanlash sahifasi
+const T=TESTS[TID||"asosiy"];
 const Q=T.q;
-const K=T.key.split("").map((c,i)=>(c.charCodeAt(0)-67+4-(i%4)+4)%4);
+const K=decodeKey(T.key);
 const PTS=[0.9,1.5,2.6];
 const SEC=["I bo‘lim · Oson","II bo‘lim · O‘rtacha","III bo‘lim · Qiyin"];
 const L=["A","B","C","D"];
@@ -679,7 +715,7 @@ function finish(){
 function send(){
   if(!ENDPOINT||sent)return;
   const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
-  const payload={test:TID||undefined,name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
+  const payload={test:TID||"asosiy",name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
     tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId};
   fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
     .then(()=>{sent=true;save()}).catch(()=>{});
@@ -792,7 +828,6 @@ function renderResult(again){
   requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
 }
 function renderReview(){
-  if(!T.tahlil)return;
   const box=$("rlist"),only=$("onlyWrong").checked;box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   Q.forEach((q,i)=>{
@@ -803,8 +838,9 @@ function renderReview(){
     const b=mk("div","rb");
     b.append(mk("p",null,q[0]));
     const ra=mk("p","ra");ra.append(mk("b",null,"To‘g‘ri javob: "+L[K[i]]+") "),document.createTextNode(q[2][K[i]]));b.appendChild(ra);
-    const t=mk("p");t.append(mk("b",null,"Tahlil: "),document.createTextNode(T.tahlil[i][0]));b.appendChild(t);
-    b.appendChild(mk("p","rm","Manba: "+T.tahlil[i][1]));
+    const th=T.tahlil&&T.tahlil[i];
+    if(th){const t=mk("p");t.append(mk("b",null,"Tahlil: "),document.createTextNode(th[0]));b.appendChild(t);
+      b.appendChild(mk("p","rm","Manba: "+th[1]))}
     d.append(sm,b);box.appendChild(d);
   });
   if(!box.children.length)box.appendChild(mk("div","note","Xato javob yo‘q — barakalla!"));
@@ -816,11 +852,20 @@ $("copyBtn").addEventListener("click",()=>{
   const sel=()=>{const r=document.createRange();r.selectNodeContents($("copybox"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyMsg").textContent="Matn belgilandi — nusxalang."};
   try{navigator.clipboard.writeText(txt).then(()=>$("copyMsg").textContent="Nusxalandi.",sel)}catch(e){sel()}
 });
+let adminTest=TID||"asosiy";
+function adminTabs(){
+  const box=$("aTabs");box.textContent="";
+  Object.keys(TESTS).forEach(id=>{const b=document.createElement("button");b.type="button";b.className="btn ghost";b.textContent=TESTS[id].doc;
+    b.setAttribute("aria-pressed",String(id===adminTest));
+    b.addEventListener("click",()=>{if(id===adminTest)return;adminTest=id;adminTabs();adminRows=[];$("aRows").textContent="";$("aStats").textContent="";if($("aPass").value)loadAdmin()});
+    box.appendChild(b)});
+}
 function loadAdmin(){
   const pw=$("aPass").value;if(!pw){$("aErr").textContent="Parolni yozing.";return}
-  if(!ENDPOINT){$("aErr").textContent="Natijalar manzili hali ulanmagan.";return}
+  const ep=TESTS[adminTest].endpoint;
+  if(!ep){$("aErr").textContent="Bu test natijalari manzili hali ulanmagan.";$("aBody").hidden=true;return}
   $("aErr").textContent="Yuklanmoqda…";
-  fetch(ENDPOINT+"?key="+encodeURIComponent(pw)).then(r=>r.json()).then(d=>{
+  fetch(ep+"?key="+encodeURIComponent(pw)+"&test="+adminTest).then(r=>r.json()).then(d=>{
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
     $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=d.rows||[];renderAdmin();
@@ -833,7 +878,7 @@ function renderAdmin(){
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
     const d=document.createElement("div");const b=document.createElement("b");b.textContent=v;d.append(b,document.createTextNode(k));st.appendChild(d)});
-  const box=$("aRows");box.textContent="";let rank=0;
+  const box=$("aRows");box.textContent="";let rank=0;const AK=decodeKey(TESTS[adminTest].key);
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
   rows.forEach(r=>{
@@ -844,7 +889,11 @@ function renderAdmin(){
     const sec=Number(r.soniya)||0;
     m.append(kv("To‘g‘ri",r.togri+"/30"),kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin),kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)));
     m.append(kv("Sana",r.sana));
-    c.appendChild(m);box.appendChild(c);
+    c.appendChild(m);
+    const ja=String(r.javoblar||"");
+    if(ja){const w=[];AK.forEach((k,i)=>{const a=ja[i]||"-";if(a!==L[k])w.push((i+1)+" ("+a+"→"+L[k]+")")});
+      const wr=mk("div","wr");wr.append(mk("b",null,"Xato savollar ("+w.length+"): "),document.createTextNode(w.length?w.join(", "):"yo‘q"));c.appendChild(wr)}
+    box.appendChild(c);
   });
   if(!rows.length)box.appendChild(mk("div","note","Hozircha natija yo‘q."));
 }
@@ -852,14 +901,34 @@ $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
 $("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
 $("aAll").addEventListener("change",renderAdmin);
-$("hTitle").textContent=T.title;$("cOrg").textContent=T.org;if(T.doc)document.title=T.doc;
+function renderHome(){
+  $("hTitle").textContent="Huquq fanidan olimpiada testlari";$("hMeta").textContent="Testni tanlang. Har bir testni faqat bir marta yechish mumkin.";
+  document.querySelector("header.top .scale").hidden=true;$("startView").hidden=true;$("homeView").hidden=false;
+  const box=$("tlist");box.textContent="";
+  const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  Object.keys(TESTS).forEach(id=>{
+    const t=TESTS[id];let st=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null")}catch(e){}
+    const a=mk("a","tcard"+(id==="pro"?" pro":""));a.href="?test="+id;
+    const tags=mk("div","tags");
+    if(t.tahlil)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
+    let btn="Testni boshlash";
+    if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
+    else if(st&&st.t0){tags.appendChild(mk("span","tag","Boshlangan"));btn="Davom ettirish"}
+    a.append(mk("div","tt",t.title),mk("div","tm",t.meta));
+    if(tags.children.length)a.appendChild(tags);
+    a.appendChild(mk("span","btn",btn));
+    box.appendChild(a);
+  });
+}
+$("hTitle").textContent=T.title;$("hMeta").textContent=T.meta;$("cOrg").textContent=T.org;document.title=T.doc;
 buildNav();
 if(location.hash==="#admin"){
-  document.body.classList.add("adminmode");
+  document.body.classList.add("adminmode");adminTabs();
   $("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("adminView").hidden=false;
   try{const pw=sessionStorage.getItem("huquq-admin");if(pw){$("aPass").value=pw;loadAdmin()}}catch(e){}
-}else
+}else if(!TID){renderHome()}else
 (function boot(){
+  $("backLink").hidden=false;
   const st=load();if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
