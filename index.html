@@ -32,6 +32,7 @@
   --navy:#5fcfac; --navy-soft:#1c3530; --gold:#f08a5d; --gold-soft:#33241b; --ok:#5cc28d; --bad:#e57b7b; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--paper)}
@@ -143,8 +144,8 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .opt.sel{border-color:var(--navy);background:var(--navy-soft)}
 .opt.sel .l{background:var(--navy);border-color:var(--navy);color:var(--paper)}
 .qbody{display:grid;gap:14px}
-/* Kompyuterda test ekrani keng: matn chapda, variantlar o'ngda, 30 ta raqam bir qatorda */
-@media (min-width:1000px){
+/* Kompyuterda va yotqizilgan telefonda test ekrani keng: matn chapda, variantlar o'ngda, 30 ta raqam bir qatorda */
+@media (min-width:1000px),(orientation:landscape) and (min-width:640px){
   body.testmode .wrap,body.testmode .bar .in{max-width:1240px}
   body.testmode .nav{grid-template-columns:repeat(30,1fr)}
   body.testmode .qcard{padding:28px 32px}
@@ -152,6 +153,15 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
   body.testmode .qbody.two{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:24px;align-items:start}
   body.testmode .extra{font-size:17px;padding:16px 18px}
   body.testmode .opt .t{font-size:17px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  body.testmode .qcard{padding:16px 18px;margin-top:12px;gap:10px}
+  body.testmode .stem{font-size:17px}
+  body.testmode .extra,body.testmode .opt .t{font-size:15px}
+  body.testmode .extra{padding:10px 12px}
+  body.testmode .opt{padding:8px 11px}
+  body.testmode .nav a{height:22px;font-size:10px}
+  body.testmode .bar{padding-block:6px}
 }
 .qnav{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
 .qnav .btn{min-width:120px}
