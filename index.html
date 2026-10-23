@@ -332,6 +332,8 @@ body.adminmode .wrap{max-width:1280px}
   .arow2 .bl{order:4}
 }
 .arow2.rep .nm{font-style:italic}
+.asep{font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--bad);border-top:2px dashed color-mix(in srgb,var(--bad) 45%,transparent);padding-top:10px;margin-top:6px}
+.arow2.many{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
 .certact{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .modal{position:fixed;inset:0;z-index:30;background:rgba(10,20,18,.6);display:grid;place-items:center;padding:16px}
 .mbox{background:var(--paper);border-radius:12px;padding:18px;display:grid;gap:12px;width:min(100%,720px);max-height:calc(100vh - 32px);overflow:auto;font-family:var(--f-ui)}
@@ -960,8 +962,12 @@ let adminRows=[];
 // Test muallifining sinov natijalari reytingda ko'rsatilmaydi
 const HIDE_NAMES=["jubatxanov hasilbek","hasilbek jubatxanov"];
 const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toLowerCase());
+// Sahifadan MAX_LEAVES martadan ko'p chiqqanlar reytingda halol yechganlarning oxirgisidan keyin turadi
+const MAX_LEAVES=3;
+const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
 function renderAdmin(){
-  const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror),rows=all?adminRows:first;
+  const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
+  const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.soniya)||0)-(Number(b.soniya)||0));
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
@@ -969,13 +975,15 @@ function renderAdmin(){
   const box=$("aRows");box.textContent="";let rank=0;const AK=TESTS[adminTest].key?decodeKey(TESTS[adminTest].key):[];
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
+  let sep=false;
   rows.forEach(r=>{
-    const c=mk("div","arow2"+(r.takror?" rep":(++rank,r.ball>43?" top":"")));
+    if(manyLeaves(r)&&!sep){sep=true;box.appendChild(mk("div","asep","Sahifadan "+MAX_LEAVES+" martadan ko‘p chiqqanlar — reyting oxirida"))}
+    const c=mk("div","arow2"+(r.takror?" rep":(++rank,r.ball>43&&!manyLeaves(r)?" top":""))+(manyLeaves(r)?" many":""));
     c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
     const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null," / 50"));c.appendChild(bl);
     const m=mk("div","meta");
     const sec=Number(r.soniya)||0;
-    m.append(kv("To‘g‘ri",r.togri+"/30"),kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin),kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)));
+    m.append(kv("To‘g‘ri",r.togri+"/30"),kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin),kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)+(manyLeaves(r)?" ⚠":"")));
     m.append(kv("Sana",r.sana));
     c.appendChild(m);
     const ja=String(r.javoblar||"");
