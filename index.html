@@ -271,7 +271,16 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .ritem summary .ok{color:var(--ok);font-weight:600}.ritem summary .bad{color:var(--bad);font-weight:600}
 .ritem .rb{padding:0 12px 12px;display:grid;gap:8px;font-size:15.5px}
 .ritem .rb p{margin:0}
-.ritem .rb .ra{background:color-mix(in srgb,var(--ok) 12%,transparent);border-radius:6px;padding:8px 10px}
+.ritem .rb .rq{font-weight:600}
+.ropts{display:grid;gap:6px}
+.ro{display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;border:1px solid var(--line);border-radius:8px;padding:8px 11px}
+.ro .l{font-family:var(--f-ui);font-weight:600;font-size:12px;width:24px;height:24px;flex:none;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.ro .t{flex:1;min-width:0;padding-top:1px}
+.ro .rmk{font-family:var(--f-ui);font-size:12px;font-weight:600;width:100%;padding-left:34px}
+.ro.right{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.ro.right .l{background:var(--ok);border-color:var(--ok);color:#fff}.ro.right .rmk{color:var(--ok)}
+.ro.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,transparent)}
+.ro.wrong .l{background:var(--bad);border-color:var(--bad);color:#fff}.ro.wrong .rmk{color:var(--bad)}
 .ritem .rb .rm{font-family:var(--f-ui);font-size:13px;color:var(--muted)}
 .review label{display:flex;gap:6px;align-items:center}
 .venn{width:220px;max-width:100%;height:auto;margin:2px 0 4px}
@@ -904,8 +913,15 @@ function renderReview(){
     sm.append(mk("b",null,(i+1)+"."),mk("span",ok?"ok":"bad",ok?"To‘g‘ri":"Xato"),
       mk("span","rs","Sizning javobingiz: "+(ans[i]===null?"—":L[ans[i]])+" · To‘g‘ri javob: "+L[K[i]]));
     const b=mk("div","rb");
-    b.append(mk("p",null,q[0]));
-    const ra=mk("p","ra");ra.append(mk("b",null,"To‘g‘ri javob: "+L[K[i]]+") "),document.createTextNode(q[2][K[i]]));b.appendChild(ra);
+    b.append(mk("p","rq",q[0]));
+    if(q[1]){const ex=mk("div","extra");if(q[3]==="venn")ex.appendChild(venn());q[1].forEach(t=>ex.appendChild(mk("p",null,t)));b.appendChild(ex)}
+    const ol=mk("div","ropts");
+    q[2].forEach((t,j)=>{const right=j===K[i],mine=j===ans[i];
+      const o=mk("div","ro"+(right?" right":mine?" wrong":""));
+      o.append(mk("span","l",L[j]),mk("span","t",t));
+      if(right||mine)o.appendChild(mk("span","rmk",right&&mine?"✓ Sizning javobingiz — to‘g‘ri":right?"✓ To‘g‘ri javob":"✗ Sizning javobingiz"));
+      ol.appendChild(o)});
+    b.appendChild(ol);
     const th=T.tahlil&&T.tahlil[i];
     if(th){const t=mk("p");t.append(mk("b",null,"Tahlil: "),document.createTextNode(th[0]));b.appendChild(t);
       b.appendChild(mk("p","rm","Manba: "+th[1]))}
