@@ -76,6 +76,28 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .locked h2{margin:0;font-family:var(--f-display);font-size:22px;color:var(--navy)}
 .locked p{margin:0}
 .locked .lk{font-size:34px;line-height:1}
+.practice{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-color:var(--gold);background:var(--gold-soft)}
+.practice strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;color:var(--gold)}
+.practice p{margin:2px 0 0;font-family:var(--f-ui);font-size:14px;max-width:46ch}
+.pq .ro{cursor:pointer;background:var(--paper);font:inherit;font-size:16.5px;color:var(--ink);text-align:left;width:100%;flex-wrap:nowrap;align-items:flex-start;padding:11px 13px}
+.pq .ro .l{width:26px;height:26px;font-size:13px}
+.pq .ro:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.pq .ro:hover{border-color:var(--navy)}
+.pq.answered .ro{cursor:default}
+.pq.answered .ro:hover{border-color:var(--line)}
+.pq.answered .ro.right:hover{border-color:var(--ok)}.pq.answered .ro.wrong:hover{border-color:var(--bad)}
+.pfb{display:grid;gap:8px;border-radius:8px;padding:12px 14px;font-size:15.5px}
+.pfb p{margin:0}
+.pfb.ok{background:color-mix(in srgb,var(--ok) 12%,transparent)}
+.pfb.ok .h{color:var(--ok);font-family:var(--f-display);font-size:20px;font-weight:700}
+.pfb.bad{background:var(--bg);border:1px solid var(--line)}
+.pfb.bad .h{color:var(--bad);font-family:var(--f-ui);font-weight:600}
+.pfb .rm{font-family:var(--f-ui);font-size:13px;color:var(--muted)}
+.pdone{display:grid;gap:10px;justify-items:center;text-align:center;margin-top:22px;padding:30px 20px}
+.pdone .big{font-size:48px;line-height:1}
+.pdone h2{margin:0;font-family:var(--f-display);font-size:24px;color:var(--navy)}
+.pdone p{margin:0;font-family:var(--f-ui);color:var(--muted)}
+.pdone .row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
 .pend{display:grid;gap:12px;justify-items:start;margin-top:22px}
 .pend p{margin:0;font-family:var(--f-ui)}
 .acodes{display:grid;gap:10px}
@@ -455,6 +477,30 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   </div>
 </div>
 
+<div class="wrap" id="practiceView" hidden>
+  <section class="card qcard pq">
+    <div class="qhead"><span class="sec">Xatolar ustida ishlash · ball va vaqtsiz</span><span class="pos" id="pPos"></span></div>
+    <div class="progress"><i id="pProg"></i></div>
+    <p class="stem" id="pStem"></p>
+    <div class="extra" id="pExtra" hidden></div>
+    <div class="ropts" id="pOpts"></div>
+    <div class="pfb" id="pFb" hidden></div>
+    <div class="qnav">
+      <button class="btn ghost" id="pExit" type="button">Natijaga qaytish</button>
+      <button class="btn" id="pNext" type="button" hidden>Keyingi →</button>
+    </div>
+  </section>
+  <section class="card pdone" id="pDone" hidden>
+    <div class="big" id="pDoneIcon"></div>
+    <h2 id="pDoneTitle"></h2>
+    <p id="pDoneText"></p>
+    <div class="row">
+      <button class="btn gold" id="pAgain" type="button" hidden>Qolgan xatolarni yana yechish</button>
+      <button class="btn ghost" id="pBack" type="button">Natijaga qaytish</button>
+    </div>
+  </section>
+</div>
+
 <div class="wrap" id="pendView" hidden>
   <section class="card pend">
     <p id="pendMsg">Natija hisoblanmoqda…</p>
@@ -517,6 +563,11 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="note" style="margin-top:6px">Natijani nusxalab, o‘qituvchiga Telegramda yuboring:</div>
       <div class="copybox" id="copybox"></div>
       <div class="finish row" style="margin:0"><button class="btn" id="copyBtn" type="button">Natijani nusxalash</button><span class="note" id="copyMsg"></span></div>
+    </section>
+
+    <section class="card practice" id="practiceCard" hidden>
+      <div><strong>Xatolar ustida ishlang</strong><p id="practiceInfo"></p></div>
+      <button class="btn gold" id="practiceBtn" type="button">Xatolarimni qayta yechish</button>
     </section>
 
     <section class="card review" id="review" hidden>
@@ -936,6 +987,9 @@ function renderResult(again){
 }
 function renderReview(){
   if(!T.tahlil)return; // tahlili bor testlardagina ko‘rsatiladi
+  const wrong=ans.map((a,i)=>a===K[i]?null:i).filter(i=>i!==null);
+  $("practiceCard").hidden=!wrong.length;
+  $("practiceInfo").textContent="Siz "+wrong.length+" ta savolda xato qildingiz. Ularni ball va vaqtsiz qayta yechib ko‘ring — xato qilsangiz, tahlil darhol ochiladi.";
   const box=$("rlist"),only=$("onlyWrong").checked;box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   Q.forEach((q,i)=>{
@@ -962,6 +1016,52 @@ function renderReview(){
   $("review").hidden=false;
 }
 $("onlyWrong").addEventListener("change",renderReview);
+// Xatolar ustida ishlash: faqat xato savollar, ball va vaqtsiz, natijaga ta'sir qilmaydi
+let pList=[],pIdx=0,pMiss=[],pFirst=0;
+function practiceStart(list){
+  pList=list;pIdx=0;pMiss=[];
+  $("resultView").hidden=true;document.querySelector("header.top").hidden=true;$("practiceView").hidden=false;
+  document.querySelector("#practiceView .pq").hidden=false;$("pDone").hidden=true;practiceShow();
+}
+function practiceShow(){
+  const i=pList[pIdx],q=Q[i],card=document.querySelector("#practiceView .pq");card.classList.remove("answered");
+  const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  $("pPos").textContent=(pIdx+1)+" / "+pList.length;$("pProg").style.width=((pIdx+1)/pList.length*100)+"%";
+  const st=$("pStem");st.textContent="";st.append(mk("span","n",(i+1)+"."),document.createTextNode(q[0]));
+  const ex=$("pExtra");ex.textContent="";
+  if(q[1]){if(q[3]==="venn")ex.appendChild(venn());q[1].forEach(t=>ex.appendChild(mk("p",null,t)));ex.hidden=false}else ex.hidden=true;
+  const o=$("pOpts");o.textContent="";
+  q[2].forEach((t,j)=>{const b=mk("button","ro");b.type="button";b.append(mk("span","l",L[j]),mk("span","t",t));
+    b.addEventListener("click",()=>practicePick(j));o.appendChild(b)});
+  $("pFb").hidden=true;$("pNext").hidden=true;$("pNext").textContent=pIdx===pList.length-1?"Yakunlash":"Keyingi →";
+  window.scrollTo({top:0});
+}
+function practicePick(j){
+  const card=document.querySelector("#practiceView .pq");if(card.classList.contains("answered"))return;card.classList.add("answered");
+  const i=pList[pIdx],ok=j===K[i],btns=$("pOpts").children;
+  const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  btns[K[i]].classList.add("right");if(!ok){btns[j].classList.add("wrong");pMiss.push(i)}
+  const fb=$("pFb");fb.textContent="";fb.className="pfb "+(ok?"ok":"bad");
+  if(ok)fb.append(mk("div","h","🎉 Endi to‘g‘ri!"),mk("p",null,"Barakalla — bu savolni endi bilasiz."));
+  else{fb.appendChild(mk("div","h","Yana xato. To‘g‘ri javob: "+L[K[i]]));
+    const th=T.tahlil&&T.tahlil[i];
+    if(th){const t=mk("p");t.append(mk("b",null,"Tahlil: "),document.createTextNode(th[0]));fb.append(t,mk("p","rm","Manba: "+th[1]))}}
+  fb.hidden=false;$("pNext").hidden=false;$("pNext").focus({preventScroll:true});
+}
+function practiceEnd(){
+  document.querySelector("#practiceView .pq").hidden=true;$("pDone").hidden=false;
+  const fixed=pList.length-pMiss.length;
+  $("pDoneIcon").textContent=pMiss.length?"💪":"🏆";
+  $("pDoneTitle").textContent=pMiss.length?"Yaxshi natija!":"Hamma xatolar tuzatildi!";
+  $("pDoneText").textContent="Bu safar "+pList.length+" ta savoldan "+fixed+" tasini to‘g‘ri topdingiz."+(pMiss.length?" Yana "+pMiss.length+" ta savol qoldi.":"")
+    +(pFirst!==pList.length?" Testda jami "+pFirst+" ta xato bor edi.":"");
+  $("pAgain").hidden=!pMiss.length;window.scrollTo({top:0});
+}
+function practiceExit(){$("practiceView").hidden=true;document.querySelector("header.top").hidden=false;$("resultView").hidden=false;$("practiceCard").scrollIntoView({block:"center"})}
+$("practiceBtn").addEventListener("click",()=>{const w=ans.map((a,i)=>a===K[i]?null:i).filter(i=>i!==null);pFirst=w.length;if(w.length)practiceStart(w)});
+$("pNext").addEventListener("click",()=>{if(pIdx<pList.length-1){pIdx++;practiceShow()}else practiceEnd()});
+$("pAgain").addEventListener("click",()=>practiceStart(pMiss.slice()));
+$("pExit").addEventListener("click",practiceExit);$("pBack").addEventListener("click",practiceExit);
 $("copyBtn").addEventListener("click",()=>{
   const txt=$("copybox").textContent;
   const sel=()=>{const r=document.createRange();r.selectNodeContents($("copybox"));const s=getSelection();s.removeAllRanges();s.addRange(r);$("copyMsg").textContent="Matn belgilandi — nusxalang."};
