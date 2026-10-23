@@ -967,7 +967,7 @@ const MAX_LEAVES=3;
 const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
 function renderAdmin(){
   const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
-  const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.soniya)||0)-(Number(b.soniya)||0));
+  const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
