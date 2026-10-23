@@ -974,7 +974,7 @@ function loadCodes(){
   const pw=$("aPass").value;$("cMsg").textContent="Kodlar yuklanmoqda…";
   fetch(ENDPOINT+"?"+qs({action:"codes",key:pw})).then(r=>r.json()).then(d=>{
     if(d.error){$("cMsg").textContent="Kodlarni olib bo‘lmadi. Google skript yangilanganini tekshiring.";return}
-    $("cMsg").textContent="";const all=d.codes||[],free=all.filter(c=>c.holat==="bo‘sh"),used=all.filter(c=>c.holat!=="bo‘sh"&&!hidden(c.ism));
+    $("cMsg").textContent="";const all=(d.codes||[]).filter(c=>!hidden(c.ism)),free=all.filter(c=>c.holat==="bo‘sh"),used=all.filter(c=>c.holat!=="bo‘sh");
     const st=$("cStats");st.textContent="";
     [["Jami kod",all.length],["Bo‘sh",free.length],["Ishlatilgan",used.length]].forEach(([k,v])=>{const e=document.createElement("div");const b=document.createElement("b");b.textContent=v;e.append(b,document.createTextNode(k));st.appendChild(e)});
     $("cFree").textContent=free.length?free.map(c=>c.kod).join("\n"):"Bo‘sh kod qolmadi — yangilarini yarating.";
