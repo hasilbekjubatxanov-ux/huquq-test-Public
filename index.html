@@ -178,6 +178,18 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
   body.testmode .nav a{height:22px;font-size:10px}
   body.testmode .bar{padding-block:6px}
 }
+.qtools{display:flex;gap:10px;align-items:center}
+.flag{font-family:var(--f-ui);font-size:12px;font-weight:600;border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:4px 10px;cursor:pointer}
+.flag[aria-pressed="true"]{background:var(--gold-soft);border-color:var(--gold);color:var(--gold)}
+.flag:focus-visible,.strike:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.orow{display:flex;gap:6px;align-items:stretch}
+.orow .opt{flex:1}
+.strike{flex:none;width:40px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--muted);font-size:15px;cursor:pointer}
+.strike:hover{border-color:var(--bad);color:var(--bad)}
+.orow.struck .opt .t{text-decoration:line-through;opacity:.45}
+.orow.struck .opt .l{opacity:.45}
+.orow.struck .strike{background:color-mix(in srgb,var(--bad) 10%,transparent);border-color:var(--bad);color:var(--bad)}
+.nav a.flagged{background:var(--gold-soft);border-color:var(--gold);color:var(--gold);font-weight:600}
 .qnav{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
 .qnav .btn{min-width:120px}
 
@@ -386,6 +398,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <li>Test 30 ta savoldan iborat, vaqt 60 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.</li>
         <li>Har bir savolda bitta to‘g‘ri javob bor. Testni yakunlash uchun hamma savolga javob berish kerak.</li>
         <li>Savollar orasida yuqoridagi raqamlar orqali erkin o‘tish va javobni o‘zgartirish mumkin.</li>
+        <li>🚩 tugmasi bilan shubhali savolni keyinroq qaytish uchun belgilang, ✕ bilan noto‘g‘ri deb o‘ylagan variantni chizib qo‘ying.</li>
         <li>Testni faqat bir marta yechish mumkin. Sahifa yangilansa, qolgan joyingizdan davom etasiz, vaqt to‘xtamaydi.</li>
         <li>Test paytida sahifadan chiqib ketish natijada qayd etiladi.</li>
         <li>Test yakunida natijangiz bo‘yicha sertifikat beriladi.</li>
@@ -416,7 +429,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   </div></div>
   <div class="wrap">
     <section class="card qcard" id="qcard" aria-live="polite">
-      <div class="qhead"><span class="sec" id="qsec"></span><span class="pos" id="qpos"></span></div>
+      <div class="qhead"><span class="sec" id="qsec"></span><span class="qtools"><button class="flag" id="flagBtn" type="button" aria-pressed="false">🚩 Keyinroq qaytaman</button><span class="pos" id="qpos"></span></span></div>
       <div class="progress"><i id="prog"></i></div>
       <p class="stem" id="qstem"></p>
       <div class="qbody" id="qbody">
@@ -635,10 +648,11 @@ if(TG){try{TG.ready();TG.expand()}catch(e){}}
 let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
 const LIMIT=60*60;
 const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
+let flags=new Array(30).fill(false),strikes=Array.from({length:30},()=>[]);
 let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[],sent=false;
 const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
-function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent}))}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 // Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
 let paid={};
@@ -667,13 +681,19 @@ function show(i){
   $("qbody").classList.toggle("two",!!q[1]);
   if(q[1]){if(q[3]==="venn")ex.appendChild(venn());q[1].forEach(t=>{const p=document.createElement("p");p.textContent=t;ex.appendChild(p)});ex.hidden=false}else ex.hidden=true;
   const o=$("qopts");o.textContent="";
+  $("flagBtn").setAttribute("aria-pressed",String(!!flags[i]));
   q[2].forEach((t,j)=>{
+    const row=document.createElement("div");row.className="orow"+(strikes[i].includes(j)?" struck":"");
     const lab=document.createElement("label");lab.className="opt"+(ans[i]===j?" sel":"");
     const inp=document.createElement("input");inp.type="radio";inp.name="q"+i;inp.id="o"+i+"_"+j;inp.checked=ans[i]===j;
     inp.addEventListener("change",()=>pick(j));
     const l=document.createElement("span");l.className="l";l.textContent=L[j];
     const tx=document.createElement("span");tx.className="t";tx.textContent=t;
-    lab.append(inp,l,tx);o.appendChild(lab);
+    lab.append(inp,l,tx);
+    const x=document.createElement("button");x.type="button";x.className="strike";x.textContent="✕";
+    x.setAttribute("aria-label",L[j]+" variantni chizib tashlash");x.title="Noto‘g‘ri deb o‘ylasangiz, chizib qo‘ying";
+    x.addEventListener("click",()=>toggleStrike(j));
+    row.append(lab,x);o.appendChild(row);
   });
   $("prevBtn").disabled=i===0;
   $("nextBtn").textContent=i===29?"Testni yakunlash":"Keyingi →";
@@ -687,8 +707,16 @@ function venn(){
   [["I",55],["III",110],["II",165]].forEach(([t,x])=>{const e=el("text",{x,y:65});e.textContent=t;s.appendChild(e)});
   return s;
 }
+function toggleStrike(j){
+  if(done)return;const a=strikes[cur],k=a.indexOf(j);if(k>=0)a.splice(k,1);else a.push(j);
+  document.querySelectorAll("#qopts .orow")[j].classList.toggle("struck",k<0);save();
+}
+$("flagBtn").addEventListener("click",()=>{
+  if(done)return;flags[cur]=!flags[cur];$("flagBtn").setAttribute("aria-pressed",String(flags[cur]));$("d"+cur).classList.toggle("flagged",flags[cur]);save();
+});
 function pick(j){
   if(done)return;ans[cur]=j;
+  const k=strikes[cur].indexOf(j);if(k>=0){strikes[cur].splice(k,1);document.querySelectorAll("#qopts .orow")[j].classList.remove("struck")}
   document.querySelectorAll("#qopts .opt").forEach((el,k)=>el.classList.toggle("sel",k===j));
   $("d"+cur).classList.add("on");
   $("cnt").textContent=ans.filter(a=>a!==null).length;save();
@@ -700,7 +728,8 @@ function askFinish(){
     $("leftNote").textContent="Testni yakunlash uchun hamma savolga javob bering. Javob berilmagan savollar ("+miss.length+" ta): "+miss.map(i=>i+1).join(", ");
     $("finWarn").hidden=true;$("yesBtn").hidden=true;$("gotoMissing").hidden=false;
   }else{
-    $("leftNote").textContent="Hamma savolga javob berdingiz.";
+    const fl=flags.map((f,i)=>f?i+1:null).filter(Boolean);
+    $("leftNote").textContent="Hamma savolga javob berdingiz."+(fl.length?" 🚩 Keyinroq qaytish uchun belgilangan savollar: "+fl.join(", ")+" — yakunlashdan oldin qayta ko‘rib chiqing.":"");
     $("finWarn").hidden=false;$("yesBtn").hidden=false;$("gotoMissing").hidden=true;
   }
   $("finishBox").hidden=false;$("finishBox").scrollIntoView({block:"center"});
@@ -714,7 +743,7 @@ function tick(){
 function enterTest(){
   started=true;$("startView").hidden=true;$("testView").hidden=false;document.body.classList.add("testmode");
   document.querySelector("header.top").hidden=true;$("who").textContent=name;
-  ans.forEach((a,i)=>{if(a!==null)$("d"+i).classList.add("on")});
+  ans.forEach((a,i)=>{if(a!==null)$("d"+i).classList.add("on");$("d"+i).classList.toggle("flagged",!!flags[i])});
   $("cnt").textContent=ans.filter(a=>a!==null).length;
   timer=setInterval(tick,1000);tick();if(!done)show(cur);
 }
@@ -1057,6 +1086,8 @@ if(location.hash==="#admin"){
   if(!st||!st.name||!st.t0)return;
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
+  if(Array.isArray(st.flags)&&st.flags.length===30)flags=st.flags;
+  if(Array.isArray(st.strikes)&&st.strikes.length===30)strikes=st.strikes.map(a=>Array.isArray(a)?a:[]);
   if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
   if(done){started=true;if(T.paid&&!paid.key)finishPaid(true);else{renderResult(true);send()}return}
   if(Date.now()-t0>=LIMIT*1000){started=true;timeUp=true;finish();$("again").hidden=false;return}
