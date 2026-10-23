@@ -116,6 +116,12 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .acodes{display:grid;gap:10px}
 .acodes h3{margin:0;font-family:var(--f-ui);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
 .acodes input[type=number]{font:inherit;font-family:var(--f-ui);padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);width:120px}
+.cfree{display:grid;gap:6px}
+.cf{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:8px;padding:8px 10px 8px 14px;background:var(--paper)}
+.cf b{font-family:var(--f-mono);font-weight:500;font-size:16px;letter-spacing:.04em;white-space:nowrap}
+.cf .st{flex:1;min-width:0;font-family:var(--f-ui);font-size:12px;color:var(--ok);font-weight:600}
+.cf .btn{padding:7px 14px;font-size:13px}
+.cf.done{background:var(--bg)}.cf.done b{color:var(--muted)}
 .clist{display:grid;gap:4px;font-family:var(--f-ui);font-size:13px}
 .clist div{display:flex;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding:5px 0}
 .clist b{font-family:var(--f-mono);font-weight:500}
@@ -636,9 +642,8 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
           <button class="btn" id="cGen" type="button">Yangi kodlar yaratish</button>
         </div>
         <div class="note" id="cMsg"></div>
-        <div class="note">Bo‘sh kodlar — har bir ishtirokchiga bittadan bering:</div>
-        <div class="copybox" id="cFree"></div>
-        <div><button class="btn ghost" id="cCopy" type="button">Bo‘sh kodlarni nusxalash</button></div>
+        <div class="note">Bo‘sh kodlar — har bir ishtirokchiga bittadan nusxalab bering. Nusxalanganlari «✓ nusxalangan» bo‘lib, ro‘yxat oxiriga tushadi.</div>
+        <div class="cfree" id="cFree"></div>
         <div class="note">Ishlatilgan kodlar:</div>
         <div class="clist" id="cUsed"></div>
       </section>
@@ -1197,7 +1202,7 @@ function loadCodes(){
     $("cMsg").textContent="";const all=(d.codes||[]).filter(c=>!hidden(c.ism)),free=all.filter(c=>c.holat==="bo‘sh"),used=all.filter(c=>c.holat!=="bo‘sh");
     const st=$("cStats");st.textContent="";
     [["Jami kod",all.length],["Bo‘sh",free.length],["Ishlatilgan",used.length]].forEach(([k,v])=>{const e=document.createElement("div");const b=document.createElement("b");b.textContent=v;e.append(b,document.createTextNode(k));st.appendChild(e)});
-    $("cFree").textContent=free.length?free.map(c=>c.kod).join("\n"):"Bo‘sh kod qolmadi — yangilarini yarating.";
+    renderFree(free);
     const box=$("cUsed");box.textContent="";
     used.forEach(c=>{const r=document.createElement("div");const b=document.createElement("b");b.textContent=c.kod;
       r.append(b,document.createTextNode(c.ism+" · "+(c.holat==="tugagan"?"tugatgan, "+fmt(c.ball||0)+" ball":"yechmoqda")+" · "+c.sana));box.appendChild(r)});
@@ -1209,7 +1214,26 @@ $("cGen").addEventListener("click",()=>{
   fetch(ENDPOINT+"?"+qs({action:"gen",key:$("aPass").value,n})).then(r=>r.json()).then(d=>{$("cGen").disabled=false;
     if(!d.ok){$("cMsg").textContent="Kod yaratib bo‘lmadi.";return}loadCodes()}).catch(()=>{$("cGen").disabled=false;$("cMsg").textContent="Ulanib bo‘lmadi."});
 });
-$("cCopy").addEventListener("click",()=>{try{navigator.clipboard.writeText($("cFree").textContent).then(()=>$("cMsg").textContent="Nusxalandi.")}catch(e){}});
+// Bo'sh kodlar birma-bir nusxalanadi; nusxalangani shu qurilmada eslab qolinadi (bitta kod ikki kishiga berilmasin)
+const copiedKey="huquq-admin-copied";
+const getCopied=()=>{try{return JSON.parse(localStorage.getItem(copiedKey)||"[]")}catch(e){return []}};
+function renderFree(free){
+  const box=$("cFree");box.textContent="";
+  if(!free.length){box.textContent="Bo‘sh kod qolmadi — yangilarini yarating.";return}
+  const copied=getCopied();
+  free.slice().sort((a,b)=>copied.includes(a.kod)-copied.includes(b.kod)).forEach(c=>{
+    const was=copied.includes(c.kod),r=document.createElement("div");r.className="cf"+(was?" done":"");
+    const k=document.createElement("b");k.textContent=c.kod;
+    const t=document.createElement("span");t.className="st";t.textContent=was?"✓ nusxalangan":"";
+    const btn=document.createElement("button");btn.type="button";btn.className="btn "+(was?"ghost":"");btn.textContent="Nusxalash";
+    btn.addEventListener("click",()=>{
+      const ok=()=>{const l=getCopied();if(!l.includes(c.kod)){l.push(c.kod);try{localStorage.setItem(copiedKey,JSON.stringify(l))}catch(e){}}
+        r.classList.add("done");t.textContent="✓ nusxalandi";btn.className="btn ghost";$("cMsg").textContent=c.kod+" nusxalandi."};
+      try{navigator.clipboard.writeText(c.kod).then(ok,()=>{prompt("Kodni nusxalang:",c.kod);ok()})}catch(e){prompt("Kodni nusxalang:",c.kod);ok()}
+    });
+    r.append(k,t,btn);box.appendChild(r);
+  });
+}
 $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
 $("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
