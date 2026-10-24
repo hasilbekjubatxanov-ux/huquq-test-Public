@@ -391,6 +391,7 @@ body.adminmode .wrap{max-width:1280px}
 }
 .arow2.rep .nm{font-style:italic}
 .asep{font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--bad);border-top:2px dashed color-mix(in srgb,var(--bad) 45%,transparent);padding-top:10px;margin-top:6px}
+.asep.g0{color:var(--ok);border-top-color:color-mix(in srgb,var(--ok) 45%,transparent);margin-top:0}
 .arow2.many{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
 .certact{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .modal{position:fixed;inset:0;z-index:30;background:rgba(10,20,18,.6);display:grid;place-items:center;padding:16px}
@@ -1191,12 +1192,13 @@ let adminRows=[];
 // Test muallifining sinov natijalari reytingda ko'rsatilmaydi
 const HIDE_NAMES=["jubatxanov hasilbek","hasilbek jubatxanov"];
 const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toLowerCase());
-// Sahifadan MAX_LEAVES martadan ko'p chiqqanlar reytingda halol yechganlarning oxirgisidan keyin turadi
+// Reyting: avval sahifadan chiqishlar soni (0, 1, 2, …), so'ng ball, so'ng vaqt
 const MAX_LEAVES=3;
-const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
+const leavesOf=r=>Number(r.chiqish)||0;
+const manyLeaves=r=>leavesOf(r)>MAX_LEAVES;
 function renderAdmin(){
   const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
-  const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
+  const rows=(all?adminRows:first).slice().sort((a,b)=>leavesOf(a)-leavesOf(b)||b.ball-a.ball||(Number(a.soniya)||0)-(Number(b.soniya)||0));
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
@@ -1204,9 +1206,9 @@ function renderAdmin(){
   const box=$("aRows");box.textContent="";let rank=0;const AK=TESTS[adminTest].key?decodeKey(TESTS[adminTest].key):[];
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
-  let sep=false;
+  let grp=null;
   rows.forEach(r=>{
-    if(manyLeaves(r)&&!sep){sep=true;box.appendChild(mk("div","asep","Sahifadan "+MAX_LEAVES+" martadan ko‘p chiqqanlar — reyting oxirida"))}
+    if(leavesOf(r)!==grp){grp=leavesOf(r);box.appendChild(mk("div","asep"+(grp?"":" g0"),"Sahifadan chiqishlar: "+grp))}
     const c=mk("div","arow2"+(r.takror?" rep":(++rank,r.ball>43&&!manyLeaves(r)?" top":""))+(manyLeaves(r)?" many":""));
     c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
     const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null," / 50"));c.appendChild(bl);
