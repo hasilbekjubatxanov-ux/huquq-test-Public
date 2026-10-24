@@ -1200,8 +1200,8 @@ const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toL
 // Sahifadan MAX_LEAVES martadan ko'p chiqqanlar reytingda halol yechganlarning oxirgisidan keyin turadi
 const MAX_LEAVES=3;
 const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
-// Reyting tartibi: ball, teng bo'lsa tezroq yechgan (chiqishlar faqat belgilanadi)
-const byRank=(a,b)=>b.ball-a.ball||(Number(a.soniya)||0)-(Number(b.soniya)||0);
+// Reyting tartibi: ball; teng bo'lsa kamroq chiqqan; u ham teng bo'lsa tezroq yechgan
+const byRank=(a,b)=>b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0);
 let rankedRows=[];
 // Reyting slaydlari: 1280×720, har birida 14 o'rin — "Batafsil natijalar: 1–14-o'rinlar"
 const RANK_PER_SLIDE=14;
