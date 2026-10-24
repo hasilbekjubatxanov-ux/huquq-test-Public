@@ -390,6 +390,7 @@ body.adminmode .wrap{max-width:1280px}
   .arow2 .bl{order:4}
 }
 .arow2.rep .nm{font-style:italic}
+.arbtns{display:flex;gap:10px;flex-wrap:wrap}
 .asep{font-family:var(--f-ui);font-size:13px;font-weight:600;color:var(--bad);border-top:2px dashed color-mix(in srgb,var(--bad) 45%,transparent);padding-top:10px;margin-top:6px}
 .arow2.many{border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
 .certact{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
@@ -635,7 +636,8 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="astats" id="aStats"></div>
       <div class="arow">
         <label class="note"><input type="checkbox" id="aAll"> Takroriy urinishlarni ham ko‘rsatish</label>
-        <button class="btn ghost" id="aRefresh" type="button">Yangilash</button>
+        <span class="arbtns"><button class="btn gold" id="aRankPng" type="button">Reytingni rasm qilib olish</button>
+        <button class="btn ghost" id="aRefresh" type="button">Yangilash</button></span>
       </div>
       <div class="alist" id="aRows"></div>
       <section class="card afb" id="aFb" hidden>
@@ -1027,7 +1029,7 @@ $("savePng").addEventListener("click",async()=>{
   try{
     try{await Promise.race([Promise.all([document.fonts.load('700 30px "Poppins"'),document.fonts.load('500 20px "Poppins"'),document.fonts.load('italic 500 20px "Poppins"'),document.fonts.load('600 20px "Poppins"'),document.fonts.load('400 108px "Anton"')]),new Promise(r=>setTimeout(r,2500))])}catch(e){}
     const url=drawCert(certData).toDataURL("image/png");
-    $("certImg").src=url;$("dlLink").href=url;$("dlLink").download="sertifikat-"+name.replace(/[^\p{L}0-9]+/gu,"-")+".png";
+    $("mTitle").textContent="Sertifikat rasmi tayyor";$("certImg").src=url;$("dlLink").href=url;$("dlLink").download="sertifikat-"+name.replace(/[^\p{L}0-9]+/gu,"-")+".png";
     $("imgModal").hidden=false;$("pngMsg").textContent="";
   }catch(e){$("pngMsg").textContent="Rasm tayyorlab bo‘lmadi. Sertifikatni skrinshot qiling."}
   btn.disabled=false;
@@ -1194,8 +1196,47 @@ const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toL
 // Sahifadan MAX_LEAVES martadan ko'p chiqqanlar reytingda halol yechganlarning oxirgisidan keyin turadi
 const MAX_LEAVES=3;
 const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
+let rankedRows=[];
+// Reyting rasmi (Telegram kanal uchun): 1080×1350, eng ko'pi 15 o'rin
+function drawRanking(rows,title){
+  const W=1080,top=rows.slice(0,15),rowH=Math.min(96,Math.floor(820/Math.max(top.length,1))),H=1350;
+  const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
+  const F='"Poppins", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',AF='"Anton", Impact, sans-serif';
+  const font=(w,sz)=>x.font=w+" "+sz+"px "+F;
+  const g=x.createRadialGradient(W*.75,180,0,W*.75,180,W*1.1);g.addColorStop(0,"#1f6b59");g.addColorStop(.55,"#0d3b31");g.addColorStop(1,"#071f1a");
+  x.fillStyle=g;x.fillRect(0,0,W,H);
+  [["#f6c445",0],["#139a78",1],["#f0683a",2],["#fbe6a6",3]].forEach(([col,i])=>{x.fillStyle=col;x.fillRect(80+i*52,86,44,10)});
+  x.fillStyle="#d8e4e0";font(600,26);if("letterSpacing" in x)x.letterSpacing="4px";x.fillText("JUBATKHANOV | HUQUQ",80,150);if("letterSpacing" in x)x.letterSpacing="0px";
+  x.fillStyle="#f6c445";x.font="400 92px "+AF;x.fillText("REYTING",80,262);
+  x.fillStyle="#ffffff";font(600,34);x.fillText(title,80,316);
+  const d=new Date();x.fillStyle="#9fb7b0";font(500,24);
+  x.fillText(String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()+" holatiga · "+rows.length+" ishtirokchi",80,358);
+  const medal=["#f6c445","#d8dee0","#e39a5f"];let y=410;
+  top.forEach((r,i)=>{
+    x.fillStyle=i<3?"rgba(255,255,255,.10)":"rgba(255,255,255,.045)";
+    x.beginPath();if(x.roundRect)x.roundRect(60,y,W-120,rowH-14,16);else x.rect(60,y,W-120,rowH-14);x.fill();
+    const cy=y+(rowH-14)/2;
+    x.fillStyle=i<3?medal[i]:"rgba(255,255,255,.14)";x.beginPath();x.arc(118,cy,28,0,Math.PI*2);x.fill();
+    x.fillStyle=i<3?"#0d3b31":"#ffffff";font(700,26);x.textAlign="center";x.textBaseline="middle";x.fillText(String(i+1),118,cy+1);
+    x.textAlign="left";x.fillStyle="#ffffff";let fs=34;font(600,fs);while(x.measureText(r.ism).width>640&&fs>20){fs-=2;font(600,fs)}x.fillText(r.ism,170,cy+1);
+    x.textAlign="right";x.save();if(i<3){x.shadowColor="rgba(0,0,0,.5)";x.shadowOffsetX=-5;x.shadowOffsetY=3;x.shadowBlur=8}
+    x.fillStyle=i<3?"#f6c445":"#ffffff";x.font="400 "+Math.min(54,rowH-30)+"px "+AF;x.fillText(fmt(r.ball),W-170,cy+2);x.restore();
+    x.fillStyle="#9fb7b0";font(600,24);x.fillText("/ 50",W-90,cy+4);x.textAlign="left";x.textBaseline="alphabetic";
+    y+=rowH;
+  });
+  if(rows.length>top.length){x.fillStyle="#9fb7b0";font(500,24);x.fillText("… va yana "+(rows.length-top.length)+" ishtirokchi",80,y+24)}
+  x.fillStyle="#d8e4e0";font(600,28);x.textAlign="center";x.fillText("@jubatkhanov_huquq",W/2,H-70);x.textAlign="left";
+  return c;
+}
+$("aRankPng").addEventListener("click",async()=>{
+  if(!rankedRows.length){$("aErr").textContent="Reytingda hali natija yo‘q.";return}
+  try{await Promise.race([Promise.all([document.fonts.load('600 30px "Poppins"'),document.fonts.load('400 90px "Anton"')]),new Promise(r=>setTimeout(r,2500))])}catch(e){}
+  const url=drawRanking(rankedRows,TESTS[adminTest].doc).toDataURL("image/png");
+  $("mTitle").textContent="Reyting rasmi tayyor";$("certImg").src=url;$("certImg").alt="Reyting rasmi";$("dlLink").href=url;$("dlLink").download="reyting-"+adminTest+".png";$("imgModal").hidden=false;
+});
 function renderAdmin(){
   const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
+  rankedRows=first.slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
   const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
