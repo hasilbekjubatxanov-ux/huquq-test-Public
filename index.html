@@ -397,6 +397,9 @@ body.adminmode .wrap{max-width:1280px}
 .modal{position:fixed;inset:0;z-index:30;background:rgba(10,20,18,.6);display:grid;place-items:center;padding:16px}
 .mbox{background:var(--paper);border-radius:12px;padding:18px;display:grid;gap:12px;width:min(100%,720px);max-height:calc(100vh - 32px);overflow:auto;font-family:var(--f-ui)}
 .mbox img{width:100%;height:auto;border:1px solid var(--line);border-radius:4px;display:block}
+.mlist{display:grid;gap:14px}
+.mlist figure{margin:0;display:grid;gap:6px}
+.mlist img{width:100%;height:auto;border:1px solid var(--line);border-radius:4px;display:block}
 .mbox .row{display:flex;gap:10px;flex-wrap:wrap}
 footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted);text-align:center}
 </style>
@@ -666,6 +669,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   <div class="mbox" role="dialog" aria-modal="true" aria-labelledby="mTitle">
     <b id="mTitle">Sertifikat rasmi tayyor</b>
     <img id="certImg" alt="Sertifikat rasmi">
+    <div class="mlist" id="mList" hidden></div>
     <p class="note">Telefonda: rasmni bosib turing va «Saqlash» ni tanlang. Kompyuterda: «Yuklab olish» tugmasini bosing.</p>
     <div class="row"><a class="btn" id="dlLink" download="sertifikat.png" href="#">Yuklab olish</a><button class="btn ghost" id="closeModal" type="button">Yopish</button></div>
   </div>
@@ -1029,7 +1033,7 @@ $("savePng").addEventListener("click",async()=>{
   try{
     try{await Promise.race([Promise.all([document.fonts.load('700 30px "Poppins"'),document.fonts.load('500 20px "Poppins"'),document.fonts.load('italic 500 20px "Poppins"'),document.fonts.load('600 20px "Poppins"'),document.fonts.load('400 108px "Anton"')]),new Promise(r=>setTimeout(r,2500))])}catch(e){}
     const url=drawCert(certData).toDataURL("image/png");
-    $("mTitle").textContent="Sertifikat rasmi tayyor";$("certImg").src=url;$("dlLink").href=url;$("dlLink").download="sertifikat-"+name.replace(/[^\p{L}0-9]+/gu,"-")+".png";
+    $("mTitle").textContent="Sertifikat rasmi tayyor";$("mList").hidden=true;$("certImg").hidden=false;$("dlLink").hidden=false;$("certImg").src=url;$("dlLink").href=url;$("dlLink").download="sertifikat-"+name.replace(/[^\p{L}0-9]+/gu,"-")+".png";
     $("imgModal").hidden=false;$("pngMsg").textContent="";
   }catch(e){$("pngMsg").textContent="Rasm tayyorlab bo‘lmadi. Sertifikatni skrinshot qiling."}
   btn.disabled=false;
@@ -1197,42 +1201,51 @@ const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toL
 const MAX_LEAVES=3;
 const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
 let rankedRows=[];
-// Reyting rasmi (Telegram kanal uchun): 1080×1350, eng ko'pi 15 o'rin
-function drawRanking(rows,title){
-  const W=1080,top=rows.slice(0,15),rowH=Math.min(96,Math.floor(820/Math.max(top.length,1))),H=1350;
-  const c=document.createElement("canvas");c.width=W;c.height=H;const x=c.getContext("2d");
-  const F='"Poppins", system-ui, -apple-system, "Segoe UI", Arial, sans-serif',AF='"Anton", Impact, sans-serif';
-  const font=(w,sz)=>x.font=w+" "+sz+"px "+F;
-  const g=x.createRadialGradient(W*.75,180,0,W*.75,180,W*1.1);g.addColorStop(0,"#1f6b59");g.addColorStop(.55,"#0d3b31");g.addColorStop(1,"#071f1a");
-  x.fillStyle=g;x.fillRect(0,0,W,H);
-  [["#f6c445",0],["#139a78",1],["#f0683a",2],["#fbe6a6",3]].forEach(([col,i])=>{x.fillStyle=col;x.fillRect(80+i*52,86,44,10)});
-  x.fillStyle="#d8e4e0";font(600,26);if("letterSpacing" in x)x.letterSpacing="4px";x.fillText("JUBATKHANOV | HUQUQ",80,150);if("letterSpacing" in x)x.letterSpacing="0px";
-  x.fillStyle="#f6c445";x.font="400 92px "+AF;x.fillText("REYTING",80,262);
-  x.fillStyle="#ffffff";font(600,34);x.fillText(title,80,316);
-  const d=new Date();x.fillStyle="#9fb7b0";font(500,24);
-  x.fillText(String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()+" holatiga · "+rows.length+" ishtirokchi",80,358);
-  const medal=["#f6c445","#d8dee0","#e39a5f"];let y=410;
-  top.forEach((r,i)=>{
-    x.fillStyle=i<3?"rgba(255,255,255,.10)":"rgba(255,255,255,.045)";
-    x.beginPath();if(x.roundRect)x.roundRect(60,y,W-120,rowH-14,16);else x.rect(60,y,W-120,rowH-14);x.fill();
-    const cy=y+(rowH-14)/2;
-    x.fillStyle=i<3?medal[i]:"rgba(255,255,255,.14)";x.beginPath();x.arc(118,cy,28,0,Math.PI*2);x.fill();
-    x.fillStyle=i<3?"#0d3b31":"#ffffff";font(700,26);x.textAlign="center";x.textBaseline="middle";x.fillText(String(i+1),118,cy+1);
-    x.textAlign="left";x.fillStyle="#ffffff";let fs=34;font(600,fs);while(x.measureText(r.ism).width>640&&fs>20){fs-=2;font(600,fs)}x.fillText(r.ism,170,cy+1);
-    x.textAlign="right";x.save();if(i<3){x.shadowColor="rgba(0,0,0,.5)";x.shadowOffsetX=-5;x.shadowOffsetY=3;x.shadowBlur=8}
-    x.fillStyle=i<3?"#f6c445":"#ffffff";x.font="400 "+Math.min(54,rowH-30)+"px "+AF;x.fillText(fmt(r.ball),W-170,cy+2);x.restore();
-    x.fillStyle="#9fb7b0";font(600,24);x.fillText("/ 50",W-90,cy+4);x.textAlign="left";x.textBaseline="alphabetic";
-    y+=rowH;
+// Reyting slaydlari: 1280×720, har birida 14 o'rin — "Batafsil natijalar: 1–14-o'rinlar"
+const RANK_PER_SLIDE=14;
+function drawRankSlide(rows,from){
+  const S=2,W=1280,H=720,c=document.createElement("canvas");c.width=W*S;c.height=H*S;const x=c.getContext("2d");x.scale(S,S);
+  const PF='"Poppins", system-ui, sans-serif',TF='Arial, "Liberation Sans", Helvetica, sans-serif';
+  x.fillStyle="#fff";x.fillRect(0,0,W,H);
+  const L0=86,R0=1194;
+  x.fillStyle="#0d5c4b";x.font="700 36px "+PF;x.textBaseline="alphabetic";
+  x.fillText("Batafsil natijalar: "+(from+1)+"–"+(from+rows.length)+"-o‘rinlar",L0,74);
+  // ustunlar: [sarlavha, x, tekislash]
+  const cols=[["O‘rin",95,"left"],["Ishtirokchi",173,"left"],["Ball",597,"right"],["To‘g‘ri",697,"right"],["Oson",786,"right"],["O‘rtacha",897,"right"],["Qiyin",985,"right"],["Vaqt",1096,"right"],["Chiqish",R0-9,"right"]];
+  x.fillStyle="#4b5a56";x.font="700 17px "+TF;
+  cols.forEach(([t,cx,al])=>{x.textAlign=al;x.fillText(t,cx,118)});
+  x.fillStyle="#0d5c4b";x.fillRect(L0,127,R0-L0,1.5);
+  const rh=30.6;let y=127;
+  rows.forEach((r,i)=>{
+    const cy=y+rh/2+6;
+    const sec=Number(r.soniya)||0,lv=Number(r.chiqish)||0;
+    const vals=[String(from+i+1),r.ism,fmt(r.ball),r.togri+"/30",String(r.oson),String(r.orta),String(r.qiyin),mmss(sec)+(r.tugadi?"*":""),String(lv)];
+    cols.forEach(([t,cx,al],k)=>{
+      x.textAlign=al;
+      x.font=(k===2||(k===8&&lv>=MAX_LEAVES)?"700 ":"400 ")+"17px "+TF;
+      x.fillStyle=k===0?"#5b6a66":k===8&&lv>=MAX_LEAVES?"#c4541f":"#1d2a27";
+      let v=vals[k];if(k===1){while(x.measureText(v).width>370&&v.length>4)v=v.slice(0,-2)+"…"}
+      x.fillText(v,cx,cy);
+    });
+    y+=rh;x.fillStyle="#e3e8e6";x.fillRect(L0,y,R0-L0,1);
   });
-  if(rows.length>top.length){x.fillStyle="#9fb7b0";font(500,24);x.fillText("… va yana "+(rows.length-top.length)+" ishtirokchi",80,y+24)}
-  x.fillStyle="#d8e4e0";font(600,28);x.textAlign="center";x.fillText("@jubatkhanov_huquq",W/2,H-70);x.textAlign="left";
+  x.textAlign="left";x.fillStyle="#5b6a66";x.font="400 17px "+TF;
+  const note="Oson, O‘rtacha, Qiyin — har bo‘limdagi 10 savoldan to‘g‘ri javoblar soni. Chiqish — test paytida sahifadan chiqib ketishlar soni ("+MAX_LEAVES+" va undan ko‘pi ajratilgan). * — vaqt tugagan.";
+  let line="",ly=y+34;note.split(" ").forEach(w=>{const t=line?line+" "+w:w;if(x.measureText(t).width>R0-L0&&line){x.fillText(line,L0,ly);ly+=24;line=w}else line=t});if(line)x.fillText(line,L0,ly);
   return c;
 }
 $("aRankPng").addEventListener("click",async()=>{
   if(!rankedRows.length){$("aErr").textContent="Reytingda hali natija yo‘q.";return}
-  try{await Promise.race([Promise.all([document.fonts.load('600 30px "Poppins"'),document.fonts.load('400 90px "Anton"')]),new Promise(r=>setTimeout(r,2500))])}catch(e){}
-  const url=drawRanking(rankedRows,TESTS[adminTest].doc).toDataURL("image/png");
-  $("mTitle").textContent="Reyting rasmi tayyor";$("certImg").src=url;$("certImg").alt="Reyting rasmi";$("dlLink").href=url;$("dlLink").download="reyting-"+adminTest+".png";$("imgModal").hidden=false;
+  try{await Promise.race([document.fonts.load('700 36px "Poppins"'),new Promise(r=>setTimeout(r,2500))])}catch(e){}
+  const urls=[];for(let i=0;i<rankedRows.length;i+=RANK_PER_SLIDE)urls.push(drawRankSlide(rankedRows.slice(i,i+RANK_PER_SLIDE),i).toDataURL("image/png"));
+  $("mTitle").textContent=urls.length>1?"Reyting slaydlari tayyor ("+urls.length+" ta)":"Reyting slaydi tayyor";
+  const list=$("mList");list.textContent="";
+  if(urls.length===1){$("certImg").hidden=false;list.hidden=true;$("certImg").src=urls[0];$("certImg").alt="Reyting slaydi";$("dlLink").hidden=false;$("dlLink").href=urls[0];$("dlLink").download="reyting-"+adminTest+".png"}
+  else{$("certImg").hidden=true;$("dlLink").hidden=true;list.hidden=false;
+    urls.forEach((u,k)=>{const f=document.createElement("figure");const im=document.createElement("img");im.src=u;im.alt="Reyting slaydi "+(k+1);
+      const a=document.createElement("a");a.className="btn ghost";a.href=u;a.download="reyting-"+adminTest+"-"+(k+1)+".png";a.textContent=(k*RANK_PER_SLIDE+1)+"–"+Math.min(rankedRows.length,(k+1)*RANK_PER_SLIDE)+"-o‘rinlarni yuklab olish";
+      f.append(im,a);list.appendChild(f)})}
+  $("imgModal").hidden=false;
 });
 function renderAdmin(){
   const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
