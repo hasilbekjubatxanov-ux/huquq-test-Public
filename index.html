@@ -1200,6 +1200,8 @@ const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toL
 // Sahifadan MAX_LEAVES martadan ko'p chiqqanlar reytingda halol yechganlarning oxirgisidan keyin turadi
 const MAX_LEAVES=3;
 const manyLeaves=r=>(Number(r.chiqish)||0)>MAX_LEAVES;
+// Reyting tartibi: ball, teng bo'lsa tezroq yechgan (chiqishlar faqat belgilanadi)
+const byRank=(a,b)=>b.ball-a.ball||(Number(a.soniya)||0)-(Number(b.soniya)||0);
 let rankedRows=[];
 // Reyting slaydlari: 1280×720, har birida 14 o'rin — "Batafsil natijalar: 1–14-o'rinlar"
 const RANK_PER_SLIDE=14;
@@ -1249,8 +1251,8 @@ $("aRankPng").addEventListener("click",async()=>{
 });
 function renderAdmin(){
   const all=$("aAll").checked,first=adminRows.filter(r=>!r.takror);
-  rankedRows=first.slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
-  const rows=(all?adminRows:first).slice().sort((a,b)=>manyLeaves(a)-manyLeaves(b)||b.ball-a.ball||(Number(a.chiqish)||0)-(Number(b.chiqish)||0)||(Number(a.soniya)||0)-(Number(b.soniya)||0));
+  rankedRows=first.slice().sort(byRank);
+  const rows=(all?adminRows:first).slice().sort(byRank);
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
   [["Ishtirokchilar",first.length],["O‘rtacha ball",fmt(avg)],["43+ ball",first.filter(r=>r.ball>43).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
@@ -1258,9 +1260,7 @@ function renderAdmin(){
   const box=$("aRows");box.textContent="";let rank=0;const AK=TESTS[adminTest].key?decodeKey(TESTS[adminTest].key):[];
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
   const kv=(k,v)=>{const sp=mk("span");sp.append(k+": ",mk("b",null,v));return sp};
-  let sep=false;
   rows.forEach(r=>{
-    if(manyLeaves(r)&&!sep){sep=true;box.appendChild(mk("div","asep","Sahifadan "+MAX_LEAVES+" martadan ko‘p chiqqanlar — reyting oxirida"))}
     const c=mk("div","arow2"+(r.takror?" rep":(++rank,r.ball>43&&!manyLeaves(r)?" top":""))+(manyLeaves(r)?" many":""));
     c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
     const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null," / 50"));c.appendChild(bl);
