@@ -16,7 +16,7 @@ const ADMIN_PAROL = "BU_YERGA_PAROL_YOZING";
 const TESTLAR = {
   asosiy: { varaq: "Asosiy test", kalit: "DABCADBCADBCADBACDBCBDCADBCADB" },
   pro:    { varaq: "PRO test", data: "PRO_DATA", kodVaraq: "Kodlar", bepul: true, yopiq: true },
-  t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true, yopiq: true }
+  t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true }
 };
 function data_(id) {
   const n = TESTLAR[id].data;
