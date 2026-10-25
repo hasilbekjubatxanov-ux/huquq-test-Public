@@ -320,6 +320,11 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .track span{position:absolute;inset:0 8px;display:flex;align-items:center;font-size:12px;color:var(--muted)}
 .brow .v{text-align:right}
 .topics{display:grid;gap:10px}
+.mem{margin:0;padding:0;overflow:hidden;display:grid;border-width:2px}
+.mem img{display:block;width:100%;height:auto;max-height:420px;object-fit:cover;background:var(--bg)}
+.mem figcaption{padding:14px 16px;font-family:var(--f-display);font-size:20px;font-weight:700;line-height:1.25;color:var(--ink);text-align:center;text-wrap:balance}
+.mem.good{border-color:var(--navy)}.mem.good figcaption{color:var(--navy)}
+.mem.top{border-color:var(--gold)}.mem.top figcaption{color:var(--gold);font-size:24px;letter-spacing:.02em}
 #tbars{display:grid;gap:8px}
 .trow{display:grid;grid-template-columns:minmax(0,1fr) 120px 44px;gap:10px;align-items:center;font-family:var(--f-ui);font-size:14px;font-variant-numeric:tabular-nums}
 .trow .tn{min-width:0;overflow-wrap:anywhere}
@@ -580,6 +585,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
 <div class="wrap" id="resultView" hidden>
   <div class="result">
     <div class="card note" id="again" hidden>Siz bu testni yechib bo‘lgansiz. Testni faqat bir marta yechish mumkin, quyida natijangiz.</div>
+    <figure class="card mem" id="memCard" hidden><img id="memImg" alt="" width="640" height="613"><figcaption id="memCap"></figcaption></figure>
     <div class="certwrap"><section class="cert" id="cert">
       <div class="art" aria-hidden="true">
         <svg viewBox="0 0 200 525" preserveAspectRatio="xMidYMid slice">
@@ -1177,6 +1183,7 @@ function renderResult(again){
     ?T.desc+" 50 balldan "+fmt(cTotal)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
     :T.desc+" faol ishtirok etib, 50 balldan "+fmt(cTotal)+" ball to‘plagani uchun tashakkur bildiriladi.";
   $("cBall").textContent=fmt(cTotal);$("cDate").textContent=cDate;
+  showMem(cTotal);
   const pz=$("cPrize");pz.hidden=true;pz.textContent="";
   if(false){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
   $("prizeAct").hidden=true;
@@ -1203,6 +1210,14 @@ function renderResult(again){
   requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
 }
 // Mavzular bo'yicha natija: zaif mavzular tepada, 60% dan pastlari "takrorlang" ro'yxatiga
+// Natijaga qarab mem: 50 — chempion, 43 dan yuqori, 30–43, 30 dan past
+const MEMS=[[50,"mem/mem-50.webp","ABSOLYUT CHEMPIONSIZ!",640,613],[43.01,"mem/mem-43.webp","Senda nimadur bor do‘stim. Ishlashdan to‘xtama!",538,640],
+  [30,"mem/mem-30.webp","Bu bilan natija qilish qiyin!",347,260],[0,"mem/mem-past.webp","Senga ilohiy yordam kelmasa, qiyin bo‘ladi.",538,484]];
+function showMem(b){
+  const m=MEMS.find(x=>b>=x[0]-1e-9);if(!m){$("memCard").hidden=true;return}
+  const im=$("memImg");im.src=m[1];im.width=m[3];im.height=m[4];im.alt=m[2];$("memCap").textContent=m[2];
+  $("memCard").className="card mem"+(b>=50?" top":b>43?" good":"");$("memCard").hidden=false;
+}
 function renderTopics(){
   const box=$("topics");if(!T.mavzu||!K.length){box.hidden=true;return}
   const g={};T.mavzu.forEach((m,i)=>{g[m]=g[m]||{n:0,ok:0};g[m].n++;if(ans[i]===K[i])g[m].ok++});
