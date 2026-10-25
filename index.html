@@ -196,6 +196,16 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .stem .n{color:var(--navy);margin-right:6px;font-variant-numeric:tabular-nums}
 .extra{display:grid;gap:4px;font-size:16px;background:var(--bg);border-radius:8px;padding:12px 14px}
 .extra p{margin:0}
+.mrow{display:flex;gap:8px;align-items:flex-start;border-radius:6px;padding:2px 4px;margin:0 -4px}
+.mrow p{flex:1;min-width:0}
+.mrow.yes{background:color-mix(in srgb,var(--ok) 14%,transparent)}
+.mrow.no{background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.mrow.no p{text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 70%,transparent);opacity:.75}
+.mbtns{display:flex;gap:4px;flex:none}
+.mb{width:30px;height:30px;border-radius:6px;border:1px solid var(--line);background:var(--paper);color:var(--muted);font:700 15px/1 var(--f-ui);cursor:pointer;display:grid;place-items:center;padding:0}
+.mb.y[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.mb.n[aria-pressed="true"]{background:var(--bad);border-color:var(--bad);color:#fff}
+.mb:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 .opts{display:grid;gap:8px}
 .opt{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:11px 13px;cursor:pointer;min-width:0;background:var(--paper)}
 .opt input{position:absolute;opacity:0;pointer-events:none}
@@ -776,12 +786,12 @@ let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!device
 const LIMIT=60*60;
 const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
 let fbNeed=false,fb="";
-let igDone=[],igActive=false; // Instagram tanaffusi: 12 va 24 ta javobdan keyin // test tugagach natijadan oldin majburiy fikr
+let igDone=[],igActive=false,marks={}; // Instagram tanaffusi: 12 va 24 ta javobdan keyin // test tugagach natijadan oldin majburiy fikr
 let flags=new Array(30).fill(false),strikes=Array.from({length:30},()=>[]);
 let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[],sent=false;
 const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
-function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes,fbNeed,fb,igDone}))}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes,fbNeed,fb,igDone,marks}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 // Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
 let paid={};
@@ -812,7 +822,18 @@ function show(i){
   const st=$("qstem");st.textContent="";const n=document.createElement("span");n.className="n";n.textContent=(i+1)+".";st.append(n,document.createTextNode(q[0]));
   const ex=$("qextra");ex.textContent="";
   $("qbody").classList.toggle("two",!!q[1]);
-  if(q[1]){if(q[3]==="venn")ex.appendChild(venn());q[1].forEach(t=>{const p=document.createElement("p");p.textContent=t;ex.appendChild(p)});ex.hidden=false}else ex.hidden=true;
+  if(q[1]){if(q[3]==="venn")ex.appendChild(venn());const mk=markable(q[1]);
+    q[1].forEach((t,li)=>{
+      if(!mk[li]){const p=document.createElement("p");p.textContent=t;ex.appendChild(p);return}
+      const m=(marks[i]||{})[li]||0;
+      const row=document.createElement("div");row.className="mrow"+(m===1?" yes":m===-1?" no":"");
+      const p=document.createElement("p");p.textContent=t;
+      const bx=document.createElement("div");bx.className="mbtns";
+      [[1,"✓","to‘g‘ri"],[-1,"✗","noto‘g‘ri"]].forEach(([v,c,w])=>{const b=document.createElement("button");b.type="button";b.className="mb"+(v===1?" y":" n");b.textContent=c;
+        b.setAttribute("aria-pressed",String(m===v));b.setAttribute("aria-label",(li+1)+"-qatorni "+w+" deb belgilash");
+        b.addEventListener("click",()=>setMark(i,li,v));bx.appendChild(b)});
+      row.append(p,bx);ex.appendChild(row)});
+    ex.hidden=false}else ex.hidden=true;
   const o=$("qopts");o.textContent="";
   $("flagBtn").setAttribute("aria-pressed",String(!!flags[i]));
   q[2].forEach((t,j)=>{
@@ -840,6 +861,13 @@ function venn(){
   [["I",55],["III",110],["II",165]].forEach(([t,x])=>{const e=el("text",{x,y:65});e.textContent=t;s.appendChild(e)});
   return s;
 }
+// Fikrlar yoniga ✓ / ✗ qoralama belgisi (faqat o'quvchiga, javobga ta'sir qilmaydi)
+function markable(lines){
+  if(lines.some(t=>/^[a-g]\) /.test(t)))return lines.map(()=>false); // moslashtirish ro'yxatlari
+  return lines.map(t=>/^(\d+\)|\(\d+\)|I{1,3}\.|IV\.)\s/.test(t)&&!/^I\. [^;]*; II\./.test(t)&&!/^\(1\).*\(2\)/.test(t));
+}
+function setMark(i,li,v){marks[i]=marks[i]||{};marks[i][li]=marks[i][li]===v?0:v;save();
+  const y=window.scrollY;show(i);window.scrollTo(0,y)}
 function toggleStrike(j){
   if(done)return;const a=strikes[cur],k=a.indexOf(j);if(k>=0)a.splice(k,1);else a.push(j);
   document.querySelectorAll("#qopts .orow")[j].classList.toggle("struck",k<0);save();
@@ -981,7 +1009,7 @@ $("retakeBtn").addEventListener("click",()=>{
     if(!d.ok||!Array.isArray(d.q)){btn.disabled=false;$("retakeErr").textContent=d.error==="band"?"Bu kod boshqa qurilmaga bog‘langan.":"Hozircha qayta yechib bo‘lmadi. Keyinroq urinib ko‘ring.";return}
     paid.q=d.q;paid.attempt=(paid.attempt||1)+1;savePaid();applyPaid();
     ans=new Array(30).fill(null);flags=new Array(30).fill(false);strikes=Array.from({length:30},()=>[]);
-    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;igDone=[];t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
+    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;igDone=[];marks={};t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
     document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("on","flagged","cur"));
     $("resultView").hidden=true;$("practiceView").hidden=true;
     enterTest();toast(paid.attempt+"-urinish boshlandi. Bu natija reytingga kirmaydi.");
@@ -1441,7 +1469,7 @@ if(location.hash==="#admin"){
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
   if(Array.isArray(st.flags)&&st.flags.length===30)flags=st.flags;
-  fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";igDone=Array.isArray(st.igDone)?st.igDone:[];
+  fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";igDone=Array.isArray(st.igDone)?st.igDone:[];marks=st.marks&&typeof st.marks==="object"?st.marks:{};
   if(Array.isArray(st.strikes)&&st.strikes.length===30)strikes=st.strikes.map(a=>Array.isArray(a)?a:[]);
   if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
   if(done){started=true;if(fbNeed&&!fb){showFeedback();return}if(T.paid&&(!paid.key||!sent))finishPaid(true);else{renderResult(true);send()}return}
