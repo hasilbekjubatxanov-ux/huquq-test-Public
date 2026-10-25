@@ -33,7 +33,7 @@ function kalit_(id) {
 const BALL = [0.9, 1.5, 2.6]; // 1–10, 11–20, 21–30-savollar
 const LIMIT = 60 * 60;        // test vaqti, soniya
 const USTUNLAR = ["Sana", "Ism", "Ball", "To‘g‘ri", "Oson", "O‘rtacha", "Qiyin", "Xato savollar",
-  "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod", "Urinish"];
+  "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod", "Urinish", "Savol vaqtlari"];
 // Ball va Javoblar — birinchi urinishniki (reyting va sertifikat shu bo'yicha);
 // keyingi urinishlar soni "Urinishlar"da, davom etayotgan qayta urinish boshlangan vaqti "Joriy urinish"da.
 const KOD_USTUNLAR = ["Kod", "Holat", "Ism", "Telegram", "Telegram ID", "Qurilma", "Boshlangan", "Tugagan", "Ball", "Javoblar", "Urinishlar", "Joriy urinish"];
@@ -98,6 +98,11 @@ function kodNorm_(v) {
 function kodKorinish_(k) {
   return k.slice(0, 4) + "-" + k.slice(4);
 }
+// Har bir savolda o'tkazilgan soniyalar: "12.40.7…" (30 ta son)
+function vaqtlar_(v) {
+  const a = String(v || "").split(/[.,]/).slice(0, 30).map(function (x) { return Math.max(0, Math.min(3600, Math.floor(Number(x) || 0))); });
+  return a.length === 30 ? a.join(".") : "";
+}
 function mmss_(s) {
   return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
 }
@@ -106,7 +111,7 @@ function natijaYoz_(id, d, javoblar, soniya, kod, urinish) {
   const h = hisobla_(id, javoblar);
   natijaVaraq_(id).appendRow([new Date(), matn_(d.name, 100), h.ball, h.togri, h.oson, h.orta, h.qiyin,
     h.xato.join(", ") || "yo‘q", javoblar, mmss_(soniya), soniya, d.timeUp === true || d.timeUp === "1" ? "ha" : "",
-    Number(d.leaves) || 0, matn_(d.tg, 100), matn_(d.tgId, 30), matn_(d.device, 40), kod ? kodKorinish_(kod) : "", urinish || 1]);
+    Number(d.leaves) || 0, matn_(d.tg, 100), matn_(d.tgId, 30), matn_(d.device, 40), kod ? kodKorinish_(kod) : "", urinish || 1, vaqtlar_(d.vaqt)]);
   return h;
 }
 
@@ -221,7 +226,7 @@ function tugatish_(id, p) {
     javoblar = javoblar_(p.answers);
     const boshlangan = k.v[6] instanceof Date ? k.v[6].getTime() : Date.now();
     const soniya = Math.min(LIMIT, Math.max(0, Math.floor((Date.now() - boshlangan) / 1000)));
-    h = natijaYoz_(id, { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves,
+    h = natijaYoz_(id, { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves, vaqt: p.vaqt,
       timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod);
     fikrYoz_(id, k.v[2], h.ball, p.fb, kod, k.v[3], device);
     k.sh.getRange(k.row, 2).setValue("tugagan");
@@ -285,8 +290,22 @@ function reyting_(id) {
       kod: String(r[16] || ""), urinish: Number(r[17]) || 1
     };
   });
+  const takrorlar = rows.map(function (r) { return r.takror; });
   rows.sort(function (a, b) { return b.ball - a.ball || a.soniya - b.soniya; });
-  return { rows: rows };
+  // Savollar statistikasi: faqat birinchi urinishlar
+  const k = kalit_(id), sav = [];
+  for (let i = 0; i < 30; i++) sav.push({ n: 0, togri: 0, vaqt: 0, vn: 0 });
+  qiymatlar.forEach(function (r, j) {
+    if (takrorlar[j]) return;
+    const jav = String(r[8] || ""), vq = String(r[18] || "").split(".");
+    if (jav.length < 30) return;
+    for (let i = 0; i < 30; i++) {
+      sav[i].n++;
+      if (k && jav[i] === k[i]) sav[i].togri++;
+      if (vq.length === 30) { sav[i].vaqt += Number(vq[i]) || 0; sav[i].vn++; }
+    }
+  });
+  return { rows: rows, savollar: sav };
 }
 
 function json_(o) {
