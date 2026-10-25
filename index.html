@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Huquq fanidan onlayn olimpiada testi: 8–9-sinflar, 30 ta savol, 60 daqiqa, 50 ball. Muallif: Jubatxanov Hasilbek.">
+<meta name="description" content="Huquq fanidan onlayn olimpiada testlari: 8–10-sinflar, 30 ta savol, 60 daqiqa, 50 ball. Muallif: Jubatxanov Hasilbek.">
 <meta property="og:title" content="Huquq fanidan olimpiada testi">
-<meta property="og:description" content="8–9-sinflar · 30 ta savol · 60 daqiqa · 50 ball. Natija va sertifikat test tugashi bilan.">
+<meta property="og:description" content="8–10-sinflar · 30 ta savol · 60 daqiqa · 50 ball. Natija va sertifikat test tugashi bilan.">
 <meta name="author" content="Jubatxanov Hasilbek">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
@@ -712,6 +712,14 @@ const Q0=[
 ];
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
+  t8910:{
+    q:null,key:"",tahlil:null,skey:"huquq-8910-v1",paid:true,free:true,gold:true,
+    // savollar, kalit va tahlil Google skriptdan keladi
+    endpoint:EP,
+    title:"8–10-SINFLAR OLIMPIADA TESTI",doc:"8–10-sinflar olimpiada testi",org:"Huquq fanidan olimpiada testi · 8–10-sinflar",
+    meta:"8–9–10-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50",
+    desc:"Huquq fanidan 8–10-sinflar olimpiada testida",copy:"Olimpiada testi (8–10-sinf)"
+  },
   asosiy:{
     q:Q0,key:"FDFDCCFDCCFDCCFFECFDDCCFFECFFE",tahlil:null,skey:"huquq89-olimpiada-v1",
     locked:true, // yopilgan: yangi urinish boshlanmaydi, yechib bo'lganlar natijasini ko'radi
@@ -721,7 +729,8 @@ const TESTS={
     desc:"Huquq fanidan namunaviy olimpiada testida",copy:"Huquq olimpiadasi (8–9-sinf)"
   },
   pro:{
-    q:null,key:"",tahlil:null,skey:"huquq-pro-v1",paid:true,free:true, // free: kod so'ralmaydi, skript o'zi beradi
+    q:null,key:"",tahlil:null,skey:"huquq-pro-v1",paid:true,free:true,gold:true, // free: kod so'ralmaydi, skript o'zi beradi
+    locked:true, // yopilgan: yangi urinish boshlanmaydi, yechib bo'lganlar natijasini ko'radi
     // savollar, kalit va tahlil Google skriptdan keladi
     endpoint:EP,
     title:"OLIMPIADA PRO TESTI",doc:"Olimpiada PRO testi",org:"Olimpiada PRO testi · 8–9-sinflar",
@@ -863,7 +872,7 @@ function startPaid(raw){
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
-        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas."};
+        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas.",yopiq:"Bu test yopilgan."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
     paid={code:d.code||code,q:d.q};
     // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
@@ -1293,7 +1302,7 @@ function loadFeedback(){
 }
 function loadCodes(){
   const pw=$("aPass").value;$("cMsg").textContent="Kodlar yuklanmoqda…";
-  fetch(ENDPOINT+"?"+qs({action:"codes",key:pw})).then(r=>r.json()).then(d=>{
+  fetch(ENDPOINT+"?"+qs({action:"codes",key:pw,test:adminTest})).then(r=>r.json()).then(d=>{
     if(d.error){$("cMsg").textContent="Kodlarni olib bo‘lmadi. Google skript yangilanganini tekshiring.";return}
     $("cMsg").textContent="";const all=(d.codes||[]).filter(c=>!hidden(c.ism)),free=all.filter(c=>c.holat==="bo‘sh"),used=all.filter(c=>c.holat!=="bo‘sh");
     const st=$("cStats");st.textContent="";
@@ -1307,7 +1316,7 @@ function loadCodes(){
 }
 $("cGen").addEventListener("click",()=>{
   const n=Math.max(1,Math.min(200,Number($("cNum").value)||10));$("cGen").disabled=true;$("cMsg").textContent="Yaratilmoqda…";
-  fetch(ENDPOINT+"?"+qs({action:"gen",key:$("aPass").value,n})).then(r=>r.json()).then(d=>{$("cGen").disabled=false;
+  fetch(ENDPOINT+"?"+qs({action:"gen",key:$("aPass").value,n,test:adminTest})).then(r=>r.json()).then(d=>{$("cGen").disabled=false;
     if(!d.ok){$("cMsg").textContent="Kod yaratib bo‘lmadi.";return}loadCodes()}).catch(()=>{$("cGen").disabled=false;$("cMsg").textContent="Ulanib bo‘lmadi."});
 });
 // Bo'sh kodlar birma-bir nusxalanadi; nusxalangani shu qurilmada eslab qolinadi (bitta kod ikki kishiga berilmasin)
@@ -1342,7 +1351,7 @@ function renderHome(){
   Object.keys(TESTS).forEach(id=>{
     const t=TESTS[id];let st=null,pd=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null");pd=JSON.parse(localStorage.getItem(t.skey+"-data")||"null")}catch(e){}
     const closed=t.locked&&!(st&&st.done)&&!(pd&&pd.code);
-    const a=mk(closed?"div":"a","tcard"+(id==="pro"?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
+    const a=mk(closed?"div":"a","tcard"+(t.gold?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
     if(t.paid&&!t.free)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
