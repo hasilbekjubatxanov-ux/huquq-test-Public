@@ -350,6 +350,14 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .invite p{margin:0;font-family:var(--f-ui);font-size:14px;max-width:44ch;opacity:.92}
 .invite strong{display:block;font-family:var(--f-display);font-size:18px;font-weight:600;margin-bottom:2px}
 .invite .btn{background:var(--paper);color:var(--navy);border-color:var(--paper)}
+.invite.ig{background:var(--gold);border-color:var(--gold)}
+.invite.ig .btn{color:var(--gold)}
+.igpop{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:none}
+.igpop .box{pointer-events:auto;max-width:440px;width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);display:grid;gap:10px}
+.igpop strong{font-family:var(--f-display);font-size:18px;font-weight:600}
+.igpop p{margin:0;font-family:var(--f-ui);font-size:14px;color:var(--muted)}
+.igpop .row{display:flex;gap:8px;flex-wrap:wrap}
+.igpop .btn.go{background:var(--gold);border-color:var(--gold);color:#fff}
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:20;background:var(--ink);color:var(--paper);
   font-family:var(--f-ui);font-size:14px;line-height:1.4;padding:12px 16px;border-radius:8px;width:max-content;max-width:min(calc(100vw - 32px),460px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
@@ -623,6 +631,11 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div><strong>Ko‘proq testlar kanalda</strong><p>Huquq fanidan yangi olimpiada testlari, savollar tahlili va tayyorgarlik materiallari — Telegram kanalda.</p></div>
       <a class="btn" href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener">Kanalga qo‘shilish</a>
     </section>
+
+    <section class="card invite ig" id="igCard" hidden>
+      <div><strong>Instagramda ham kuzatib boring</strong><p>Huquqdan qisqa tushuntirishlar, olimpiada savollari tahlili va yangi testlar haqida e’lonlar — @jubatkhanov.huquq sahifasida.</p></div>
+      <a class="btn igopen" href="https://www.instagram.com/jubatkhanov.huquq/" target="_blank" rel="noopener">Obuna bo‘lish</a>
+    </section>
   </div>
 </div>
 
@@ -713,7 +726,7 @@ const Q0=[
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
   t8910:{
-    q:null,key:"",tahlil:null,skey:"huquq-8910-v1",paid:true,free:true,gold:true,
+    q:null,key:"",tahlil:null,skey:"huquq-8910-v1",paid:true,free:true,gold:true,insta:true,
     locked:true, // yopilgan: yangi urinish boshlanmaydi
     // savollar, kalit va tahlil Google skriptdan keladi
     endpoint:EP,
@@ -1057,6 +1070,20 @@ $("closeModal").addEventListener("click",()=>{$("imgModal").hidden=true});
 $("imgModal").addEventListener("click",e=>{if(e.target.id==="imgModal")$("imgModal").hidden=true});
 const score=arr=>{const sec=[0,0,0];let total=0;arr.forEach((a,i)=>{if(a===K[i]){const s=Math.floor(i/10);sec[s]++;total+=PTS[s]}});return {sec,total}};
 const dstr=ms=>{const d=new Date(ms||Date.now());return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear()};
+// Ixtiyoriy Instagram taklifi: natijadan keyin bir marta ko'rsatiladi, kartochka esa doim turadi
+function igOffer(){
+  if(!T.insta)return;$("igCard").hidden=false;
+  let seen=false;try{seen=localStorage.getItem(SKEY+"-ig")==="1"}catch(e){}
+  if(seen||$("igPop"))return;
+  const mark=()=>{try{localStorage.setItem(SKEY+"-ig","1")}catch(e){}};
+  const w=document.createElement("div");w.className="igpop";w.id="igPop";
+  w.innerHTML='<div class="box" role="dialog" aria-labelledby="igT"><strong id="igT">Natijangiz tayyor!</strong><p>Instagramda ham kuzatib boring: huquqdan qisqa tushuntirishlar va yangi testlar @jubatkhanov.huquq sahifasida.</p><div class="row"><a class="btn go" href="https://www.instagram.com/jubatkhanov.huquq/" target="_blank" rel="noopener">Obuna bo‘lish</a><button type="button" class="btn ghost" id="igNo">Keyinroq</button></div></div>';
+  document.body.appendChild(w);
+  const close=()=>{mark();w.remove()};
+  w.querySelector(".go").addEventListener("click",e=>{if(TG&&TG.openLink){e.preventDefault();try{TG.openLink("https://www.instagram.com/jubatkhanov.huquq/")}catch(x){}}close()});
+  $("igNo").addEventListener("click",close);
+}
+document.querySelectorAll(".igopen").forEach(a=>a.addEventListener("click",e=>{if(TG&&TG.openLink){e.preventDefault();try{TG.openLink(a.href)}catch(x){}}}));
 function renderResult(again){
   const time=mmss(spent());
   const sec=[0,0,0];let total=0;const g=$("rgrid");g.textContent="";
@@ -1103,6 +1130,7 @@ function renderResult(again){
   $("copybox").textContent=T.copy+(retake?" — "+paid.attempt+"-urinish (reytingga kirmaydi)":"")+"\n"+name+"\nBall: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10\nSarflangan vaqt: "+time+" / 60:00"+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
   renderReview();document.body.classList.remove("testmode");
   $("startView").hidden=true;$("testView").hidden=true;$("resultView").hidden=false;document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
+  igOffer();
   requestAnimationFrame(()=>requestAnimationFrame(()=>fills.forEach(([f,w])=>f.style.width=w+"%")));
 }
 function renderReview(){
