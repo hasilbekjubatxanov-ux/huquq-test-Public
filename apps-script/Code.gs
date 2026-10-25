@@ -4,6 +4,7 @@
 // Yashirin testlar (PRO, 8–10) savollari saytda emas, Google skriptdagi alohida fayllarda turadi:
 //   ProData.gs   — const PRO_DATA = {...};
 //   Test8910.gs  — const T8910_DATA = {...};
+//   Test811.gs   — const T811_DATA = {...};
 // O'quvchi testni boshlagandagina savollarni oladi, kalit va tahlil esa test tugagach beriladi.
 // Bu fayllar faqat Google skriptga qo'yiladi va GitHub'ga yuklanmaydi.
 
@@ -16,12 +17,14 @@ const ADMIN_PAROL = "BU_YERGA_PAROL_YOZING";
 const TESTLAR = {
   asosiy: { varaq: "Asosiy test", kalit: "DABCADBCADBCADBACDBCBDCADBCADB" },
   pro:    { varaq: "PRO test", data: "PRO_DATA", kodVaraq: "Kodlar", bepul: true, yopiq: true },
-  t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true }
+  t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true },
+  t811:   { varaq: "11-sinf PRO test", data: "T811_DATA", kodVaraq: "Kodlar 11 PRO", bepul: true, yopiq: true }
 };
 function data_(id) {
   const n = TESTLAR[id].data;
   if (n === "PRO_DATA") return typeof PRO_DATA !== "undefined" ? PRO_DATA : null;
   if (n === "T8910_DATA") return typeof T8910_DATA !== "undefined" ? T8910_DATA : null;
+  if (n === "T811_DATA") return typeof T811_DATA !== "undefined" ? T811_DATA : null;
   return null;
 }
 function pullik_(id) { return !!TESTLAR[id].data; }
