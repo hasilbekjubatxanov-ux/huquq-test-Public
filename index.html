@@ -352,7 +352,8 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .invite .btn{background:var(--paper);color:var(--navy);border-color:var(--paper)}
 .invite.ig{background:var(--gold);border-color:var(--gold)}
 .invite.ig .btn{color:var(--gold)}
-.igpop{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;justify-content:center;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:none}
+.igpop{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:rgba(10,20,17,.55);padding:0 max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.igpop .tm{font-family:var(--f-ui);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
 .igpop .box{pointer-events:auto;max-width:440px;width:100%;background:var(--paper);color:var(--ink);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:14px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.18);display:grid;gap:10px}
 .igpop strong{font-family:var(--f-display);font-size:18px;font-weight:600}
 .igpop p{margin:0;font-family:var(--f-ui);font-size:14px;color:var(--muted)}
@@ -1077,11 +1078,15 @@ function igOffer(){
   if(seen||$("igPop"))return;
   const mark=()=>{try{localStorage.setItem(SKEY+"-ig","1")}catch(e){}};
   const w=document.createElement("div");w.className="igpop";w.id="igPop";
-  w.innerHTML='<div class="box" role="dialog" aria-labelledby="igT"><strong id="igT">Natijangiz tayyor!</strong><p>Instagramda ham kuzatib boring: huquqdan qisqa tushuntirishlar va yangi testlar @jubatkhanov.huquq sahifasida.</p><div class="row"><a class="btn go" href="https://www.instagram.com/jubatkhanov.huquq/" target="_blank" rel="noopener">Obuna bo‘lish</a><button type="button" class="btn ghost" id="igNo">Keyinroq</button></div></div>';
+  w.innerHTML='<div class="box" role="dialog" aria-labelledby="igT"><strong id="igT">Natijangiz tayyor!</strong><p>Instagramda ham kuzatib boring: huquqdan qisqa tushuntirishlar va yangi testlar @jubatkhanov.huquq sahifasida.</p><div class="row"><a class="btn go" href="https://www.instagram.com/jubatkhanov.huquq/" target="_blank" rel="noopener">Obuna bo‘lish</a><button type="button" class="btn ghost" id="igNo" hidden>Yopish</button></div><div class="tm" id="igTm">Natija 25 soniyadan keyin ochiladi</div></div>';
   document.body.appendChild(w);
   const close=()=>{mark();w.remove()};
   w.querySelector(".go").addEventListener("click",e=>{if(TG&&TG.openLink){e.preventDefault();try{TG.openLink("https://www.instagram.com/jubatkhanov.huquq/")}catch(x){}}close()});
   $("igNo").addEventListener("click",close);
+  // 25 soniya majburiy turadi, keyin "Yopish" tugmasi chiqadi
+  let left=25;const tm=$("igTm");
+  const t=setInterval(()=>{left--;if(left>0){tm.textContent="Natija "+left+" soniyadan keyin ochiladi";return}
+    clearInterval(t);tm.hidden=true;$("igNo").hidden=false;$("igNo").focus()},1000);
 }
 document.querySelectorAll(".igopen").forEach(a=>a.addEventListener("click",e=>{if(TG&&TG.openLink){e.preventDefault();try{TG.openLink(a.href)}catch(x){}}}));
 function renderResult(again){
