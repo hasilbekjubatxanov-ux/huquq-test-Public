@@ -767,6 +767,11 @@ function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 // Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
 let paid={};
+// Yopiq testni faqat admin ochishi uchun: ?sinov havolasida admin paroli so'raladi
+function sinovKey(){if(!new URLSearchParams(location.search).has("sinov"))return "";
+  let k="";try{k=sessionStorage.getItem("huquq-admin")||""}catch(e){}
+  if(!k){k=prompt("Admin parolini yozing:")||"";try{if(k)sessionStorage.setItem("huquq-admin",k)}catch(e){}}
+  return k}
 function savePaid(){try{localStorage.setItem(SKEY+"-data",JSON.stringify(paid))}catch(e){}}
 function loadPaid(){try{return JSON.parse(localStorage.getItem(SKEY+"-data")||"null")||{}}catch(e){return {}}}
 function applyPaid(){if(paid.q)Q=paid.q;if(paid.key){K=paid.key.split("").map(c=>L.indexOf(c));T.tahlil=paid.tahlil||null}}
@@ -869,7 +874,7 @@ function startPaid(raw){
   const code=T.free?"":$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
   if(!T.free&&code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
   const btn=$("startBtn");btn.disabled=true;$("startErr").textContent=T.free?"Test yuklanmoqda…":"Kod tekshirilmoqda…";
-  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId},tgInfo()))).then(r=>r.json()).then(d=>{
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId,sinov:sinovKey()},tgInfo()))).then(r=>r.json()).then(d=>{
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
@@ -950,7 +955,7 @@ $("pendRetry").addEventListener("click",()=>finishPaid(false));
 // Kod egasi testni cheksiz qayta yechadi; natija reytingga va sertifikatga ta'sir qilmaydi
 $("retakeBtn").addEventListener("click",()=>{
   const btn=$("retakeBtn");btn.disabled=true;$("retakeErr").textContent="Yuklanmoqda…";
-  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code:paid.code,name,device:deviceId,yangi:1},tgInfo()))).then(r=>r.json()).then(d=>{
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code:paid.code,name,device:deviceId,yangi:1,sinov:sinovKey()},tgInfo()))).then(r=>r.json()).then(d=>{
     if(!d.ok||!Array.isArray(d.q)){btn.disabled=false;$("retakeErr").textContent=d.error==="band"?"Bu kod boshqa qurilmaga bog‘langan.":"Hozircha qayta yechib bo‘lmadi. Keyinroq urinib ko‘ring.";return}
     paid.q=d.q;paid.attempt=(paid.attempt||1)+1;savePaid();applyPaid();
     ans=new Array(30).fill(null);flags=new Array(30).fill(false);strikes=Array.from({length:30},()=>[]);

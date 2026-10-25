@@ -172,14 +172,15 @@ function boshlash_(id, p) {
   let kod = kodNorm_(p.code);
   if (!kod && T.bepul) {
     if (!device && !tgId) return { error: "kod" };
-    kod = egaTop_(id, device, tgId) || (T.yopiq ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
+    const sinov = p.sinov && p.sinov === ADMIN_PAROL; // yopiq testni admin sinab ko'rishi
+    kod = egaTop_(id, device, tgId) || (T.yopiq && !sinov ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
     if (!kod) return { error: "yopiq" };
   }
   if (kod.length < 6) return { error: "kod" };
   const k = kodTop_(id, kod);
   if (!k) return { error: "kod" };
   const holat = String(k.v[1]);
-  if (T.yopiq && holat !== "boshlangan" && holat !== "tugagan") return { error: "yopiq" };
+  if (T.yopiq && holat !== "boshlangan" && holat !== "tugagan" && !(p.sinov && p.sinov === ADMIN_PAROL)) return { error: "yopiq" };
   if (holat === "tugagan") {
     // Qayta urinish: cheksiz, reytingga va sertifikatga ta'sir qilmaydi
     if (!egasi_(k, device, tgId)) return { error: "band" };
