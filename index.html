@@ -854,7 +854,11 @@ function pick(j){
 function missing(){return ans.map((a,i)=>a===null?i:null).filter(i=>i!==null)}
 function askFinish(){
   const miss=missing();
-  if(miss.length){
+  const sinov=new URLSearchParams(location.search).has("sinov");
+  if(miss.length&&sinov){
+    $("leftNote").textContent="Sinov rejimi: javob berilmagan savollar ("+miss.length+" ta) bilan ham yakunlash mumkin.";
+    $("finWarn").hidden=false;$("yesBtn").hidden=false;$("gotoMissing").hidden=false;
+  }else if(miss.length){
     $("leftNote").textContent="Testni yakunlash uchun hamma savolga javob bering. Javob berilmagan savollar ("+miss.length+" ta): "+miss.map(i=>i+1).join(", ");
     $("finWarn").hidden=true;$("yesBtn").hidden=true;$("gotoMissing").hidden=false;
   }else{
@@ -913,7 +917,7 @@ $("prevBtn").addEventListener("click",()=>{if(cur>0)show(cur-1)});
 $("nextBtn").addEventListener("click",()=>{if(cur<29)show(cur+1);else askFinish()});
 $("noBtn").addEventListener("click",()=>{$("finishBox").hidden=true});
 $("gotoMissing").addEventListener("click",()=>{const m=missing();if(m.length)show(m[0])});
-$("yesBtn").addEventListener("click",()=>{if(!missing().length)finish()});
+$("yesBtn").addEventListener("click",()=>{if(!missing().length||new URLSearchParams(location.search).has("sinov"))finish()});
 document.addEventListener("visibilitychange",()=>{
   if(!started||done)return;
   if(document.hidden){leaves++;save()}
