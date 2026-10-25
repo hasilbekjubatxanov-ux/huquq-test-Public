@@ -448,6 +448,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="field start"><label for="fio">Familiya, ism</label><input id="fio" autocomplete="name" placeholder="Masalan: Karimov Aziz"></div>
       <div class="field start" id="codeField" hidden><label for="code">Test kodi</label><input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Masalan: K7M2-QX9P">
         <span class="note">Kodingiz yo‘qmi? Telegramda <a href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv</a> ga yozing.</span></div>
+      <div class="field start" id="sinovField" hidden><label for="sinovPw">Admin paroli (sinov rejimi)</label><input id="sinovPw" type="password" autocomplete="off"></div>
       <div class="err" id="startErr"></div>
       <div><button class="btn" id="startBtn" type="button">Testni boshlash</button></div>
     </div>
@@ -783,9 +784,8 @@ function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(
 let paid={};
 // Yopiq testni faqat admin ochishi uchun: ?sinov havolasida admin paroli so'raladi
 function sinovKey(){if(!new URLSearchParams(location.search).has("sinov"))return "";
-  let k="";try{k=sessionStorage.getItem("huquq-admin")||""}catch(e){}
-  if(!k){k=prompt("Admin parolini yozing:")||"";try{if(k)sessionStorage.setItem("huquq-admin",k)}catch(e){}}
-  return k}
+  const f=document.getElementById("sinovPw");return f?f.value.trim():""}
+if(new URLSearchParams(location.search).has("sinov")){const f=document.getElementById("sinovField");if(f)f.hidden=false}
 function savePaid(){try{localStorage.setItem(SKEY+"-data",JSON.stringify(paid))}catch(e){}}
 function loadPaid(){try{return JSON.parse(localStorage.getItem(SKEY+"-data")||"null")||{}}catch(e){return {}}}
 function applyPaid(){if(paid.q)Q=paid.q;if(paid.key){K=paid.key.split("").map(c=>L.indexOf(c));T.tahlil=paid.tahlil||null}}
@@ -896,7 +896,7 @@ function startPaid(raw){
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
-        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas.",yopiq:"Bu test yopilgan."};
+        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
     paid={code:d.code||code,q:d.q};
     // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
