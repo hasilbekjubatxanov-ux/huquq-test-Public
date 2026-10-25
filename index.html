@@ -981,7 +981,7 @@ $("retakeBtn").addEventListener("click",()=>{
     if(!d.ok||!Array.isArray(d.q)){btn.disabled=false;$("retakeErr").textContent=d.error==="band"?"Bu kod boshqa qurilmaga bog‘langan.":"Hozircha qayta yechib bo‘lmadi. Keyinroq urinib ko‘ring.";return}
     paid.q=d.q;paid.attempt=(paid.attempt||1)+1;savePaid();applyPaid();
     ans=new Array(30).fill(null);flags=new Array(30).fill(false);strikes=Array.from({length:30},()=>[]);
-    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
+    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;igDone=[];t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
     document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("on","flagged","cur"));
     $("resultView").hidden=true;$("practiceView").hidden=true;
     enterTest();toast(paid.attempt+"-urinish boshlandi. Bu natija reytingga kirmaydi.");
