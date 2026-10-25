@@ -402,17 +402,6 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .atable tr.rep td{color:var(--muted);font-style:italic}
 .atable tr.top td:nth-child(3){color:var(--gold);font-weight:700}
 .alist{display:grid;gap:10px}
-.aqs{display:grid;gap:10px}
-.aqs h3{margin:0;font-family:var(--f-ui);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--navy)}
-.aqs [aria-pressed="true"]{background:var(--navy);color:var(--paper)}
-.qsort{display:flex;gap:6px;flex-wrap:wrap}.qsort .btn{padding:7px 12px;font-size:13px}
-.aqhead{display:grid;grid-template-columns:34px minmax(0,1fr) 54px 64px;gap:10px;font-family:var(--f-ui);font-size:12px;color:var(--muted)}
-.aqhead span:nth-child(n+3){text-align:right}
-.aql{display:grid;gap:6px}
-.aqr{display:grid;grid-template-columns:34px minmax(0,1fr) 54px 64px;gap:10px;align-items:center;font-family:var(--f-ui);font-size:14px;font-variant-numeric:tabular-nums}
-.aqr b{color:var(--navy)}.aqr .v{text-align:right}.aqr .tm{text-align:right;color:var(--muted)}
-.aqr.hard b{color:var(--bad)}
-.aqr .fill.lo{background:var(--bad)}.aqr .fill.mid{background:var(--gold)}.aqr .fill.hi{background:var(--ok)}
 .arow2{display:grid;grid-template-columns:auto 1fr auto;gap:4px 14px;align-items:center;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--paper)}
 .arow2 .rk{width:34px;height:34px;border-radius:50%;background:var(--navy-soft);color:var(--navy);display:grid;place-items:center;font-family:var(--f-ui);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
 .arow2 .nm{font-family:var(--f-ui);font-weight:600;font-size:16px;min-width:0;overflow-wrap:anywhere}
@@ -697,13 +686,6 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <button class="btn ghost" id="aRefresh" type="button">Yangilash</button></span>
       </div>
       <div class="alist" id="aRows"></div>
-      <section class="card aqs" id="aQs" hidden>
-        <h3>Savollar statistikasi</h3>
-        <div class="note">Birinchi urinishlar bo‘yicha: nechta o‘quvchi to‘g‘ri topgani va savolda o‘rtacha qancha vaqt o‘tkazgani.</div>
-        <div class="qsort" role="group" aria-label="Saralash"><button class="btn ghost" type="button" data-s="n" aria-pressed="true">Tartib bo‘yicha</button><button class="btn ghost" type="button" data-s="p" aria-pressed="false">Eng ko‘p xato</button><button class="btn ghost" type="button" data-s="t" aria-pressed="false">Eng uzoq o‘ylangan</button></div>
-        <div class="aqhead"><span>№</span><span>To‘g‘ri topganlar</span><span>%</span><span>Vaqt</span></div>
-        <div id="aQList" class="aql"></div>
-      </section>
       <section class="card afb" id="aFb" hidden>
         <h3>O‘quvchilar fikrlari</h3>
         <div class="note" id="aFbMsg"></div>
@@ -821,13 +803,13 @@ if(TG){try{TG.ready();TG.expand()}catch(e){}}
 let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
 const LIMIT=60*60;
 const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
-let fbNeed=false,fb="";
-let igDone=[],igActive=false,marks={},qtime=new Array(30).fill(0); // qtime — har bir savolda o'tkazilgan soniyalar // Instagram tanaffusi: 12 va 24 ta javobdan keyin // test tugagach natijadan oldin majburiy fikr
+let fbNeed=false,fb=""; // test tugagach natijadan oldin majburiy fikr
+let igDone=[],igActive=false,marks={}; // Instagram tanaffusi (12 va 24 ta javobdan keyin) va ✓/✗ belgilari
 let flags=new Array(30).fill(false),strikes=Array.from({length:30},()=>[]);
 let ans=new Array(30).fill(null),name="",cur=0,t0=0,endAt=0,timer=null,started=false,done=false,timeUp=false,leaves=0,warned=[],sent=false;
 const mmss=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
 const spent=()=>Math.min(LIMIT,Math.max(0,Math.floor(((done&&endAt?endAt:Date.now())-t0)/1000)));
-function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes,fbNeed,fb,igDone,marks,qtime}))}catch(e){}}
+function save(){try{localStorage.setItem(SKEY,JSON.stringify({name,t0,endAt,ans,cur,done,timeUp,leaves,warned,sent,flags,strikes,fbNeed,fb,igDone,marks}))}catch(e){}}
 function load(){try{return JSON.parse(localStorage.getItem(SKEY)||"null")}catch(e){return null}}
 // Pullik test: kod, serverdan kelgan savollar, kalit va tahlil
 let paid={};
@@ -937,7 +919,6 @@ function askFinish(){
   $("finishBox").hidden=false;$("finishBox").scrollIntoView({block:"center"});
 }
 function tick(){
-  if(started&&!done&&!igActive&&!document.hidden&&!$("testView").hidden&&$("finishBox").hidden){qtime[cur]=(qtime[cur]||0)+1;if(qtime[cur]%5===0)save()}
   const left=LIMIT-spent();$("tm").textContent=mmss(left);$("tmbox").classList.toggle("low",left<=300);
   let msg=null;WARN.forEach(([th,m])=>{if(left<=th&&!warned.includes(th)){warned.push(th);msg=m}});
   if(msg&&left>0){toast(msg,left<=300?"warn":"");save()}
@@ -1029,7 +1010,7 @@ function finishPaid(again){
   $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("pendView").hidden=false;
   document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;
   $("pendMsg").textContent="Natija hisoblanmoqda…";$("pendRetry").hidden=true;
-  fetch(ENDPOINT+"?"+qs(Object.assign({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0,fb,vaqt:qtime.join(".")},tgInfo())))
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ans.map(a=>a===null?"-":L[a]).join(""),leaves,timeUp:timeUp?1:0,fb},tgInfo())))
     .then(r=>r.json()).then(d=>{
       if(!d.ok||!d.key)throw new Error(d.error||"xato");
       paid.key=d.key;paid.tahlil=d.tahlil;
@@ -1046,7 +1027,7 @@ $("retakeBtn").addEventListener("click",()=>{
     if(!d.ok||!Array.isArray(d.q)){btn.disabled=false;$("retakeErr").textContent=d.error==="band"?"Bu kod boshqa qurilmaga bog‘langan.":"Hozircha qayta yechib bo‘lmadi. Keyinroq urinib ko‘ring.";return}
     paid.q=d.q;paid.attempt=(paid.attempt||1)+1;savePaid();applyPaid();
     ans=new Array(30).fill(null);flags=new Array(30).fill(false);strikes=Array.from({length:30},()=>[]);
-    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;igDone=[];marks={};qtime=new Array(30).fill(0);t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
+    cur=0;done=false;timeUp=false;leaves=0;warned=[];sent=false;endAt=0;igDone=[];marks={};t0=Date.now()-(Number(d.elapsed)||0)*1000;save();
     document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("on","flagged","cur"));
     $("resultView").hidden=true;$("practiceView").hidden=true;
     enterTest();toast(paid.attempt+"-urinish boshlandi. Bu natija reytingga kirmaydi.");
@@ -1056,7 +1037,7 @@ function send(){
   if(!ENDPOINT||sent||T.paid)return;
   const u=TG&&TG.initDataUnsafe&&TG.initDataUnsafe.user;
   const payload={test:TID||"asosiy",name,answers:ans.map(a=>a===null?"-":L[a]).join(""),time:mmss(spent()),seconds:spent(),timeUp,leaves,
-    tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId,feedback:fb,vaqt:qtime.join(".")};
+    tg:u?((u.username?"@"+u.username:"")+" "+[u.first_name,u.last_name].filter(Boolean).join(" ")).trim():"",tgId:u?String(u.id):"",device:deviceId,feedback:fb};
   fetch(ENDPOINT,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
     .then(()=>{sent=true;save()}).catch(()=>{});
 }
@@ -1337,29 +1318,12 @@ function loadAdmin(){
   fetch(ep+"?key="+encodeURIComponent(pw)+"&test="+adminTest).then(r=>r.json()).then(d=>{
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
-    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminQs=Array.isArray(d.savollar)?d.savollar:[];renderQs();adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));renderAdmin();
+    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));renderAdmin();
     const withCodes=TESTS[adminTest].paid&&!TESTS[adminTest].free;$("aCodes").hidden=!withCodes;if(withCodes)loadCodes();
     loadFeedback();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
-let adminRows=[],adminQs=[],qsSort="n";
-function renderQs(){
-  const sec=$("aQs");if(!adminQs.length||!adminQs.some(q=>q.n)){sec.hidden=true;return}
-  const list=adminQs.map((q,i)=>({i,n:q.n,p:q.n?q.togri/q.n:0,t:q.vn?q.vaqt/q.vn:null}));
-  if(qsSort==="p")list.sort((a,b)=>a.p-b.p);else if(qsSort==="t")list.sort((a,b)=>(b.t||0)-(a.t||0));
-  const hard=list.slice().sort((a,b)=>a.p-b.p).slice(0,3).map(x=>x.i);
-  const box=$("aQList");box.textContent="";
-  list.forEach(q=>{const r=document.createElement("div");r.className="aqr"+(hard.includes(q.i)?" hard":"");
-    const b=document.createElement("b");b.textContent=(q.i+1)+".";
-    const tr=document.createElement("div");tr.className="track";const f=document.createElement("div");
-    f.className="fill "+(q.p<.4?"lo":q.p<.7?"mid":"hi");f.style.width=Math.max(q.p*100,2)+"%";tr.appendChild(f);
-    const v=document.createElement("div");v.className="v";v.textContent=Math.round(q.p*100)+"%";
-    const tm=document.createElement("div");tm.className="tm";tm.textContent=q.t==null?"—":mmss(Math.round(q.t));tm.title="o‘rtacha vaqt";
-    r.append(b,tr,v,tm);box.appendChild(r)});
-  sec.hidden=false;
-}
-document.querySelectorAll("#aQs [data-s]").forEach(b=>b.addEventListener("click",()=>{qsSort=b.dataset.s;
-  document.querySelectorAll("#aQs [data-s]").forEach(x=>x.setAttribute("aria-pressed",String(x===b)));renderQs()}));
+let adminRows=[];
 // Test muallifining sinov natijalari reytingda ko'rsatilmaydi
 const HIDE_NAMES=["jubatxanov hasilbek","hasilbek jubatxanov"];
 const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toLowerCase());
@@ -1542,7 +1506,7 @@ if(location.hash==="#admin"){
   name=st.name;t0=st.t0;endAt=st.endAt||0;ans=Array.isArray(st.ans)&&st.ans.length===30?st.ans:ans;cur=st.cur||0;
   done=!!st.done;timeUp=!!st.timeUp;leaves=st.leaves||0;warned=st.warned||[];sent=!!st.sent;
   if(Array.isArray(st.flags)&&st.flags.length===30)flags=st.flags;
-  fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";igDone=Array.isArray(st.igDone)?st.igDone:[];marks=st.marks&&typeof st.marks==="object"?st.marks:{};if(Array.isArray(st.qtime)&&st.qtime.length===30)qtime=st.qtime;
+  fbNeed=!!st.fbNeed;fb=typeof st.fb==="string"?st.fb:"";igDone=Array.isArray(st.igDone)?st.igDone:[];marks=st.marks&&typeof st.marks==="object"?st.marks:{};
   if(Array.isArray(st.strikes)&&st.strikes.length===30)strikes=st.strikes.map(a=>Array.isArray(a)?a:[]);
   if(T.paid&&!paid.q){try{localStorage.removeItem(SKEY)}catch(e){}location.reload();return}
   if(done){started=true;if(fbNeed&&!fb){showFeedback();return}if(T.paid&&(!paid.key||!sent))finishPaid(true);else{renderResult(true);send()}return}
