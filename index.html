@@ -448,7 +448,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="brand">Jubatkhanov | Huquq</div>
       <a class="tg" href="https://t.me/jubatkhanov_huquq" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.9 4.3 18.7 19.4c-.2 1-.9 1.3-1.8.8l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.3-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.2 13.1 1.4 11.6c-1-.3-1-1 .2-1.5L20.6 2.8c.9-.3 1.6.2 1.3 1.5z"/></svg>Telegram kanal</a>
     </div>
-    <a class="back" id="backLink" href="./" hidden>← Barcha testlar</a>
+    <a class="back" id="backLink" href="?bolim=2026" hidden>← Barcha testlar</a>
     <h1 id="hTitle">Huquq fanidan namunaviy olimpiada testi</h1>
     <div class="meta" id="hMeta">8–9-sinflar · “Davlat va huquq asoslari” · 30 ta savol · 60 daqiqa · Maksimal ball: 50</div>
     <div class="scale">
@@ -460,7 +460,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
     <div class="lk" aria-hidden="true">🔒</div>
     <h2>Bu test yopilgan</h2>
     <p class="note">Hozircha bu testni yechib bo‘lmaydi. Boshqa testlarni bosh sahifada ko‘ring.</p>
-    <a class="btn" href="./">Barcha testlar</a>
+    <a class="btn" href="?bolim=2026">Barcha testlar</a>
   </section>
 
   <section id="homeView" class="home" hidden>
@@ -762,7 +762,7 @@ const Q0=[
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
   t811:{
-    q:null,key:"",tahlil:null,skey:"huquq-811-v1",paid:true,free:true,gold:true,insta:true,
+    q:null,key:"",tahlil:null,skey:"huquq-811-v1",paid:true,free:true,gold:true,insta:true,locked:true,
     mavzu:["Atamalar va hikmatli so‘zlar", "Davlat nazariyasi va xalqaro huquq", "Oila huquqi", "Jinoyat huquqi", "Mehnat huquqi", "Konstitutsiya va inson huquqlari", "Atamalar va hikmatli so‘zlar", "Davlat nazariyasi va xalqaro huquq", "Davlat organlari", "Davlat organlari", "Jinoyat protsessi", "Fuqarolik huquqi", "Yuridik javobgarlik", "Oila huquqi", "Jinoyat huquqi", "Fuqarolik huquqi", "Yuridik javobgarlik", "Fuqarolik huquqi", "Mehnat huquqi", "Konstitutsiya va inson huquqlari", "Yuridik javobgarlik", "Jinoyat protsessi", "Jinoyat huquqi", "Mehnat huquqi", "Davlat organlari", "Konstitutsiya va inson huquqlari", "Davlat organlari", "Jinoyat huquqi", "Jinoyat huquqi", "Konstitutsiya va inson huquqlari"],
     endpoint:EP,
     title:"OLIMPIADA 11-SINF PRO",doc:"Olimpiada 11-sinf PRO",org:"Olimpiada 11-sinf PRO testi",
@@ -770,7 +770,7 @@ const TESTS={
     desc:"Huquq fanidan Olimpiada 11-sinf PRO testida",copy:"Olimpiada 11-sinf PRO"
   },
   t8910:{
-    q:null,key:"",tahlil:null,skey:"huquq-8910-v1",paid:true,free:true,gold:true,insta:true,
+    q:null,key:"",tahlil:null,skey:"huquq-8910-v1",paid:true,free:true,gold:true,insta:true,locked:true,
     // har bir savolning mavzusi — natijada "Mavzular bo'yicha" bo'limi uchun
     mavzu:["Atamalar va hikmatli so‘zlar", "Inson huquqlari", "Yuridik javobgarlik", "Oila huquqi", "Davlat va huquq nazariyasi", "Xalqaro huquq", "Davlat va huquq nazariyasi", "Atamalar va hikmatli so‘zlar", "Davlat organlari", "Fuqarolik huquqi", "Davlat va huquq nazariyasi", "Konstitutsiya va kodekslar", "Xalqaro huquq", "Fuqarolik, pasport va ID-karta", "Davlat organlari", "Davlat va huquq nazariyasi", "Fuqarolik huquqi", "Inson huquqlari", "Fuqarolik huquqi", "Atamalar va hikmatli so‘zlar", "Davlat organlari", "Fuqarolik huquqi", "Konstitutsiya va kodekslar", "Xalqaro huquq", "Oila huquqi", "Yuridik javobgarlik", "Fuqarolik, pasport va ID-karta", "Oila huquqi", "Xalqaro huquq", "Konstitutsiya va kodekslar"],
     // savollar, kalit va tahlil Google skriptdan keladi
@@ -1486,8 +1486,23 @@ $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
 $("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
 $("aAll").addEventListener("change",renderAdmin);
+// Bosh sahifa: bo'limlar; "?bolim=2026" — Olimpiada namunaviy testlari 2026 (barcha testlar)
+const GROUP_ID="2026",GROUP_TITLE="Olimpiada namunaviy testlari 2026";
+const inGroup=new URLSearchParams(location.search).get("bolim")===GROUP_ID;
 function renderHome(){
-  $("hTitle").textContent="Huquq fanidan olimpiada testlari";$("hMeta").textContent="Testni tanlang. Har bir testni faqat bir marta yechish mumkin.";
+  $("hTitle").textContent="JUBATKHANOV HUQUQ TESTLARI";$("hMeta").textContent="Bo‘limni tanlang.";
+  document.querySelector("header.top .scale").hidden=true;$("startView").hidden=true;$("homeView").hidden=false;
+  const box=$("tlist");box.textContent="";
+  const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
+  const ids=Object.keys(TESTS),open=ids.filter(id=>!TESTS[id].locked).length;
+  const a=mk("a","tcard pro");a.href="?bolim="+GROUP_ID;
+  const tags=mk("div","tags");tags.appendChild(mk("span","tag",open?open+" ta test ochiq":"🔒 Testlar hozircha yopiq"));
+  a.append(mk("div","tt",GROUP_TITLE),mk("div","tm",ids.length+" ta olimpiada testi · 8–11-sinflar · tahlil va sertifikat bilan"),tags,mk("span","btn","Testlarga o‘tish"));
+  box.appendChild(a);
+}
+function renderGroup(){
+  $("hTitle").textContent=GROUP_TITLE;$("hMeta").textContent="Testni tanlang.";
+  $("backLink").href="./";$("backLink").textContent="← Bosh sahifa";$("backLink").hidden=false;
   document.querySelector("header.top .scale").hidden=true;$("startView").hidden=true;$("homeView").hidden=false;
   const box=$("tlist");box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
@@ -1515,7 +1530,7 @@ if(location.hash==="#admin"){
   document.body.classList.add("adminmode");adminTabs();
   $("startView").hidden=true;document.querySelector("header.top .scale").hidden=true;$("adminView").hidden=false;
   try{const pw=sessionStorage.getItem("huquq-admin");if(pw){$("aPass").value=pw;loadAdmin()}}catch(e){}
-}else if(!TID){renderHome()}else
+}else if(!TID){inGroup?renderGroup():renderHome()}else
 (function boot(){
   $("backLink").hidden=false;
   const st=load();
