@@ -21,7 +21,7 @@ const TESTLAR = {
   pro:    { varaq: "PRO test", data: "PRO_DATA", kodVaraq: "Kodlar", bepul: true, yopiq: true },
   t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true },
   t811:   { varaq: "11-sinf PRO test", data: "T811_DATA", kodVaraq: "Kodlar 11 PRO", bepul: true },
-  nhh:    { varaq: "NHH PRO test", data: "NHH_DATA", kodVaraq: "Kodlar NHH", bepul: true, yopiq: true, sanash: true }
+  nhh:    { varaq: "NHH PRO test", data: "NHH_DATA", kodVaraq: "Kodlar NHH", bepul: true, yopiq: true, sanash: true, daqiqa: 90 }
 };
 function data_(id) {
   const n = TESTLAR[id].data;
@@ -38,7 +38,8 @@ function kalit_(id) {
   return d ? d.kalit : "";
 }
 const BALL = [0.9, 1.5, 2.6]; // 1–10, 11–20, 21–30-savollar
-const LIMIT = 60 * 60;        // test vaqti, soniya
+const LIMIT = 60 * 60;        // test vaqti, soniya (testda "daqiqa" berilgan bo'lsa, o'sha)
+function limit_(id) { return (TESTLAR[id] && TESTLAR[id].daqiqa ? TESTLAR[id].daqiqa : 60) * 60; }
 const USTUNLAR = ["Sana", "Ism", "Ball", "To‘g‘ri", "Oson", "O‘rtacha", "Qiyin", "Xato savollar",
   "Javoblar", "Vaqt", "Soniya", "Vaqt tugadi", "Chiqishlar", "Telegram", "Telegram ID", "Qurilma", "Kod", "Urinish"];
 // Ball va Javoblar — birinchi urinishniki (reyting va sertifikat shu bo'yicha);
@@ -158,7 +159,7 @@ function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
-    const h = natijaYoz_(id, d, javoblar_(d.answers, id), Math.min(LIMIT, Number(d.seconds) || 0), "");
+    const h = natijaYoz_(id, d, javoblar_(d.answers, id), Math.min(limit_(id), Number(d.seconds) || 0), "");
     fikrYoz_(id, d.name, h.ball, d.feedback, "", d.tg, d.device);
   } finally {
     lock.releaseLock();
@@ -260,9 +261,9 @@ function tugatish_(id, p) {
   } else if (String(k.v[1]) === "boshlangan") {
     javoblar = javoblar_(p.answers, id);
     const boshlangan = k.v[6] instanceof Date ? k.v[6].getTime() : Date.now();
-    const soniya = Math.min(LIMIT, Math.max(0, Math.floor((Date.now() - boshlangan) / 1000)));
+    const soniya = Math.min(limit_(id), Math.max(0, Math.floor((Date.now() - boshlangan) / 1000)));
     h = natijaYoz_(id, { name: k.v[2], tg: k.v[3], tgId: k.v[4], device: device, leaves: p.leaves,
-      timeUp: p.timeUp === "1" || soniya >= LIMIT }, javoblar, soniya, kod);
+      timeUp: p.timeUp === "1" || soniya >= limit_(id) }, javoblar, soniya, kod);
     fikrYoz_(id, k.v[2], h.ball, p.fb, kod, k.v[3], device);
     k.sh.getRange(k.row, 2).setValue("tugagan");
     k.sh.getRange(k.row, 8, 1, 5).setValues([[new Date(), h.ball, javoblar, 1, ""]]);

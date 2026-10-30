@@ -515,7 +515,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
   <div class="bar"><div class="in">
     <div class="who" id="who"></div>
     <div class="stat">Javob: <b id="cnt">0</b>/30</div>
-    <div class="stat" id="tmbox">Qolgan vaqt: <b id="tm">60:00</b></div>
+    <div class="stat" id="tmbox">Qolgan vaqt: <b id="tm"></b></div>
     <nav class="nav" id="nav" aria-label="Savollar"></nav>
   </div></div>
   <div class="wrap">
@@ -768,12 +768,12 @@ const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-U
 const TESTS={
   nhh:{
     q:null,key:"",tahlil:null,skey:"huquq-nhh-v1",paid:true,free:true,gold:true,insta:true,locked:true,hide:true,
-    n:45,score:"count",sep:true,top:40,
-    rule:"Test 45 ta savoldan iborat: 35 tasi variantli, 10 tasining javobi qo‘lda yoziladi. Vaqt 60 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.",
+    n:45,score:"count",sep:true,top:40,limit:90,
+    rule:"Test 45 ta savoldan iborat: 35 tasi variantli, 10 tasining javobi qo‘lda yoziladi. Vaqt 90 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.",
     mavzu:["Umumiy qoidalar","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","Amal qilish (vaqt, makon, shaxslar)","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","Amal qilish (vaqt, makon, shaxslar)","Amal qilish (vaqt, makon, shaxslar)","Amal qilish (vaqt, makon, shaxslar)","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Amal qilish (vaqt, makon, shaxslar)","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi"],
     endpoint:EP,
     title:"NORMATIV-HUQUQIY HUJJATLAR QONUNI BO‘YICHA PRO TEST",doc:"NHH qonuni PRO test",org:"Normativ-huquqiy hujjatlar qonuni bo‘yicha PRO test",
-    meta:"45 ta savol (35 ta variantli, 10 ta yozma) · 60 daqiqa · Natija: to‘g‘ri javoblar soni",
+    meta:"45 ta savol (35 ta variantli, 10 ta yozma) · 90 daqiqa · Natija: to‘g‘ri javoblar soni",
     desc:"Normativ-huquqiy hujjatlar qonuni bo‘yicha PRO testda",copy:"NHH qonuni bo‘yicha PRO test",sub:"Testda ishtirok etgani uchun"
   },
   t811:{
@@ -842,7 +842,7 @@ const TG=(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData)?Telegram.W
 if(TG){try{TG.ready();TG.expand()}catch(e){}}
 let deviceId="";try{deviceId=localStorage.getItem("huquq-device")||"";if(!deviceId){deviceId=Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("huquq-device",deviceId)}}catch(e){}
 const LIMIT=(T.limit||60)*60;
-const WARN=[[1800,"Yarim vaqt o‘tdi: 30 daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
+const WARN=[[LIMIT/2,"Yarim vaqt o‘tdi: "+LIMIT/120+" daqiqa qoldi."],[600,"10 daqiqa qoldi."],[300,"5 daqiqa qoldi!"],[60,"Oxirgi 1 daqiqa qoldi!"]];
 let fbNeed=false,fb=""; // test tugagach natijadan oldin majburiy fikr
 let igDone=[],igActive=false,marks={}; // Instagram tanaffusi (12 va 24 ta javobdan keyin) va ✓/✗ belgilari
 let flags=new Array(N).fill(false),strikes=Array.from({length:N},()=>[]);
@@ -1271,7 +1271,7 @@ function renderResult(again){
     row.append(lb,tr,v);bars.appendChild(row);
   });
   const line=ans.map((a,i)=>(i+1)+(isOpen(i)?"="+(a===null?"-":String(a).trim()):a===null?"-":L[a])).join(" ");
-  $("copybox").textContent=T.copy+(retake?" — "+paid.attempt+"-urinish (reytingga kirmaydi)":"")+"\n"+name+"\n"+(CNT?"Natija: "+total+" / "+N+" to‘g‘ri\nVariantli: "+sec[0]+"/"+(N-Q.filter((q,i)=>isOpen(i)).length)+", Yozma: "+sec[1]+"/"+Q.filter((q,i)=>isOpen(i)).length:"Ball: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10")+"\nSarflangan vaqt: "+time+" / 60:00"+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
+  $("copybox").textContent=T.copy+(retake?" — "+paid.attempt+"-urinish (reytingga kirmaydi)":"")+"\n"+name+"\n"+(CNT?"Natija: "+total+" / "+N+" to‘g‘ri\nVariantli: "+sec[0]+"/"+(N-Q.filter((q,i)=>isOpen(i)).length)+", Yozma: "+sec[1]+"/"+Q.filter((q,i)=>isOpen(i)).length:"Ball: "+fmt(total)+" / 50 ("+corr+"/30 to‘g‘ri)\nOson: "+sec[0]+"/10, O‘rtacha: "+sec[1]+"/10, Qiyin: "+sec[2]+"/10")+"\nSarflangan vaqt: "+time+" / "+mmss(LIMIT)+(timeUp?" (vaqt tugadi)":"")+"\nSahifadan chiqishlar: "+leaves+"\nSana: "+date+"\nJavoblar: "+line;
   renderTopics();
   renderReview();document.body.classList.remove("testmode");
   $("startView").hidden=true;$("testView").hidden=true;$("resultView").hidden=false;document.querySelector("header.top").hidden=false;window.scrollTo(0,0);
