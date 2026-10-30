@@ -767,7 +767,7 @@ const Q0=[
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
   nhh:{
-    q:null,key:"",tahlil:null,skey:"huquq-nhh-v1",paid:true,free:true,gold:true,insta:true,locked:true,hide:true,
+    q:null,key:"",tahlil:null,skey:"huquq-nhh-v1",paid:true,free:true,gold:true,insta:true,locked:true,group:"qonun",
     n:45,score:"count",sep:true,top:40,limit:90,
     rule:"Test 45 ta savoldan iborat: 35 tasi variantli, 10 tasining javobi qo‘lda yoziladi. Vaqt 90 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.",
     mavzu:["Umumiy qoidalar","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","Amal qilish (vaqt, makon, shaxslar)","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","E’lon qilish va kuchga kirish","Amal qilish (vaqt, makon, shaxslar)","Amal qilish (vaqt, makon, shaxslar)","Amal qilish (vaqt, makon, shaxslar)","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Ijro, sharhlash va hisob","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Qonunchilik tizimi","Amal qilish (vaqt, makon, shaxslar)","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi","E’lon qilish va kuchga kirish","Qonunchilik tizimi"],
@@ -1556,27 +1556,37 @@ $("aGo").addEventListener("click",loadAdmin);
 $("aPass").addEventListener("keydown",e=>{if(e.key==="Enter")loadAdmin()});
 $("aRefresh").addEventListener("click",()=>{$("aLogin").hidden=false;$("aBody").hidden=true;loadAdmin()});
 $("aAll").addEventListener("change",renderAdmin);
-// Bosh sahifa: bo'limlar; "?bolim=2026" — Olimpiada namunaviy testlari 2026 (barcha testlar)
-const GROUP_ID="2026",GROUP_TITLE="Olimpiada namunaviy testlari 2026";
-const inGroup=new URLSearchParams(location.search).get("bolim")===GROUP_ID;
+// Bosh sahifa: bo'limlar. Test qaysi bo'limda — TESTS[id].group (berilmasa "2026")
+const GROUPS=[
+  {id:"2026",title:"Olimpiada namunaviy testlari 2026",tm:n=>n+" ta olimpiada testi · 8–11-sinflar · tahlil va sertifikat bilan"},
+  {id:"qonun",title:"Qonunchilik bo‘yicha testlar",tm:n=>n+" ta test · qonun moddalari asosida · tahlil va sertifikat bilan"}
+];
+const grpOf=id=>TESTS[id].group||"2026";
+const grpIds=g=>Object.keys(TESTS).filter(id=>!TESTS[id].hide&&grpOf(id)===g);
+const qBolim=new URLSearchParams(location.search).get("bolim");
+const curGroup=GROUPS.find(g=>g.id===qBolim)||null;
+const inGroup=!!curGroup;
+if(TID){const gl="?bolim="+grpOf(TID);$("backLink").href=gl;const lb=document.querySelector("#lockedView a.btn");if(lb)lb.href=gl}
 function renderHome(){
   $("hTitle").textContent="JUBATKHANOV HUQUQ TESTLARI";$("hMeta").textContent="Bo‘limni tanlang.";
   document.querySelector("header.top .scale").hidden=true;$("startView").hidden=true;$("homeView").hidden=false;
   const box=$("tlist");box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-  const ids=Object.keys(TESTS).filter(id=>!TESTS[id].hide),open=ids.filter(id=>!TESTS[id].locked).length;
-  const a=mk("a","tcard pro");a.href="?bolim="+GROUP_ID;
-  const tags=mk("div","tags");tags.appendChild(mk("span","tag",open?open+" ta test ochiq":"🔒 Testlar hozircha yopiq"));
-  a.append(mk("div","tt",GROUP_TITLE),mk("div","tm",ids.length+" ta olimpiada testi · 8–11-sinflar · tahlil va sertifikat bilan"),tags,mk("span","btn","Testlarga o‘tish"));
-  box.appendChild(a);
+  GROUPS.forEach(g=>{
+    const ids=grpIds(g.id),open=ids.filter(id=>!TESTS[id].locked).length;if(!ids.length)return;
+    const a=mk("a","tcard pro");a.href="?bolim="+g.id;
+    const tags=mk("div","tags");tags.appendChild(mk("span","tag",open?open+" ta test ochiq":"🔒 Testlar hozircha yopiq"));
+    a.append(mk("div","tt",g.title),mk("div","tm",g.tm(ids.length)),tags,mk("span","btn","Testlarga o‘tish"));
+    box.appendChild(a);
+  });
 }
 function renderGroup(){
-  $("hTitle").textContent=GROUP_TITLE;$("hMeta").textContent="Testni tanlang.";
+  $("hTitle").textContent=curGroup.title;$("hMeta").textContent="Testni tanlang.";document.title=curGroup.title;
   $("backLink").href="./";$("backLink").textContent="← Bosh sahifa";$("backLink").hidden=false;
   document.querySelector("header.top .scale").hidden=true;$("startView").hidden=true;$("homeView").hidden=false;
   const box=$("tlist");box.textContent="";
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
-  Object.keys(TESTS).filter(id=>!TESTS[id].hide).forEach(id=>{
+  grpIds(curGroup.id).forEach(id=>{
     const t=TESTS[id];let st=null,pd=null;try{st=JSON.parse(localStorage.getItem(t.skey)||"null");pd=JSON.parse(localStorage.getItem(t.skey+"-data")||"null")}catch(e){}
     const closed=t.locked&&!(st&&st.done)&&!(pd&&pd.code);
     const a=mk(closed?"div":"a","tcard"+(t.gold?" pro":"")+(closed?" closed":""));if(!closed)a.href="?test="+id;
