@@ -219,6 +219,9 @@ function boshlash_(id, p) {
   const device = String(p.device || ""), tgId = String(p.tgId || "");
   // Rash testi: natijalar e'lon qilingach yangi urinish boshlanmaydi
   const elon = T.rasch ? raschElon_(id) : null, yopiq = T.yopiq || !!elon;
+  // Sinov rejimi faqat admin paroli bilan: noto'g'ri parol bilan test boshlanmaydi
+  if (p.sinov && p.sinov !== ADMIN_PAROL) return { error: "yopiq" };
+  const sinovOk = !!p.sinov && p.sinov === ADMIN_PAROL;
   let kod = kodNorm_(p.code);
   if (!kod && T.bepul) {
     if (!device && !tgId) return { error: "kod" };
@@ -232,7 +235,8 @@ function boshlash_(id, p) {
   const holat = String(k.v[1]);
   if (yopiq && holat !== "boshlangan" && holat !== "tugagan" && !(p.sinov && p.sinov === ADMIN_PAROL)) return { error: "yopiq" };
   // Rash testi: natija e'lon qilinmaguncha qayta yechib bo'lmaydi (kalit va tahlil ochilib qolmasligi uchun)
-  if (holat === "tugagan" && T.rasch && !elon) return { error: egasi_(k, device, tgId) ? "kutish" : "band" };
+  if (sinovOk) sinovBelgila_(id, kod);
+  if (holat === "tugagan" && T.rasch && !elon && !sinovKod_(id, kod)) return { error: egasi_(k, device, tgId) ? "kutish" : "band" };
   if (holat === "tugagan") {
     // Qayta urinish: cheksiz, reytingga va sertifikatga ta'sir qilmaydi
     if (!egasi_(k, device, tgId)) return { error: "band" };
@@ -240,7 +244,7 @@ function boshlash_(id, p) {
     if (!joriy || p.yangi === "1") { joriy = new Date(); k.sh.getRange(k.row, 12).setValue(joriy); }
     return { ok: true, retake: true, code: kodKorinish_(kod), attempt: (Number(k.v[10]) || 1) + 1,
       first: { answers: String(k.v[9]), endAt: k.v[7] instanceof Date ? k.v[7].getTime() : 0 },
-      elapsed: Math.max(0, Math.floor((Date.now() - joriy.getTime()) / 1000)), q: D.savollar };
+      elapsed: Math.max(0, Math.floor((Date.now() - joriy.getTime()) / 1000)), q: D.savollar, sinov: sinovOk };
   }
   let boshlangan = k.v[6] instanceof Date ? k.v[6] : null;
   if (holat === "boshlangan") {
@@ -250,8 +254,11 @@ function boshlash_(id, p) {
     k.sh.getRange(k.row, 2, 1, 6).setValues([["boshlangan", matn_(p.name, 100), matn_(p.tg, 100), matn_(p.tgId, 30), matn_(device, 40), boshlangan]]);
   }
   const otgan = Math.max(0, Math.floor((Date.now() - boshlangan.getTime()) / 1000));
-  return { ok: true, code: kodKorinish_(kod), elapsed: otgan, q: D.savollar };
+  return { ok: true, code: kodKorinish_(kod), elapsed: otgan, q: D.savollar, sinov: sinovOk };
 }
+// Admin sinovi: bu kod natijasi darhol ko'rsatiladi va Rash hisobiga kirmaydi
+function sinovBelgila_(id, kod) { PropertiesService.getScriptProperties().setProperty("sinov_" + id + "_" + kod, "1"); }
+function sinovKod_(id, kod) { return !!kod && PropertiesService.getScriptProperties().getProperty("sinov_" + id + "_" + kodNorm_(kod)) === "1"; }
 
 // Test tugadi: ball hisoblanadi, natija yoziladi, kalit va tahlil qaytariladi
 function tugatish_(id, p) {
@@ -284,6 +291,7 @@ function tugatish_(id, p) {
   }
   if (rasch) {
     // Natijalar e'lon qilinmaguncha o'quvchiga ball, kalit va tahlil berilmaydi
+    if (sinovKod_(id, kod)) return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, sinov: true };
     if (!raschElon_(id)) return { ok: true, kutish: true };
     return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, rasch: raschTop_(id, kod) };
   }
@@ -457,7 +465,7 @@ function raschHisobla_(id) {
     const kim = [String(r[14] || ""), String(r[15] || ""), String(r[1] || "").trim().toLowerCase()];
     const takror = Number(r[17]) > 1 || kim.some(function (x) { return x && korilgan[x]; });
     kim.forEach(function (x) { if (x) korilgan[x] = true; });
-    if (takror) return;
+    if (takror || sinovKod_(id, String(r[16] || ""))) return; // admin sinovi hisobga kirmaydi
     qatnashchi.push({ ism: String(r[1]).replace(/^'/, ""), kod: String(r[16] || ""), soniya: Number(r[10]) || 0,
       chiqish: Number(r[12]) || 0, x: togriVektor_(id, javoblar_(r[8], id)) });
   });

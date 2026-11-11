@@ -989,10 +989,12 @@ function typeAns(v){
   $("d"+cur).classList.toggle("on",ans[cur]!==null);$("cnt").textContent=ans.filter(a=>a!==null).length;save();
   if(!had&&ans[cur]!==null)igCheck();
 }
+// Javobsiz yakunlash: faqat ?sinov havolasida va (kodli testlarda) server admin parolini tasdiqlagan bo'lsa
+function sinovMode(){return new URLSearchParams(location.search).has("sinov")&&(!T.paid||!!paid.sinov)}
 function missing(){return ans.map((a,i)=>a===null||a===""?i:null).filter(i=>i!==null)}
 function askFinish(){
   const miss=missing();
-  const sinov=new URLSearchParams(location.search).has("sinov");
+  const sinov=sinovMode();
   if(miss.length&&sinov){
     $("leftNote").textContent="Sinov rejimi: javob berilmagan savollar ("+miss.length+" ta) bilan ham yakunlash mumkin.";
     $("finWarn").hidden=false;$("yesBtn").hidden=false;$("gotoMissing").hidden=false;
@@ -1028,6 +1030,7 @@ $("startBtn").addEventListener("click",()=>{
 });
 function startPaid(raw){
   const code=T.free?"":$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(new URLSearchParams(location.search).has("sinov")&&!sinovKey()){$("startErr").textContent="Sinov rejimi uchun admin parolini yozing.";$("sinovPw").focus();return}
   if(!T.free&&code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
   const btn=$("startBtn");btn.disabled=true;$("startErr").textContent=T.free?"Test yuklanmoqda…":"Kod tekshirilmoqda…";
   fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId,sinov:sinovKey()},tgInfo()))).then(r=>r.json()).then(d=>{
@@ -1036,7 +1039,7 @@ function startPaid(raw){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
         tugagan:"Bu kod bilan test allaqachon yechilgan.",kutish:"Siz bu testni yechib bo‘lgansiz. Natijalar hali e’lon qilinmagan.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
-    paid={code:d.code||code,q:d.q};
+    paid={code:d.code||code,q:d.q,sinov:!!d.sinov};
     // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
     if(d.retake&&d.first){paid.first={ans:parseAns(d.first.answers,d.q),endAt:d.first.endAt,t0:0,timeUp:false,leaves:0};paid.attempt=Number(d.attempt)||2}
     savePaid();applyPaid();
@@ -1055,7 +1058,7 @@ $("prevBtn").addEventListener("click",()=>{if(cur>0)show(cur-1)});
 $("nextBtn").addEventListener("click",()=>{if(cur<N-1)show(cur+1);else askFinish()});
 $("noBtn").addEventListener("click",()=>{$("finishBox").hidden=true});
 $("gotoMissing").addEventListener("click",()=>{const m=missing();if(m.length)show(m[0])});
-$("yesBtn").addEventListener("click",()=>{if(!missing().length||new URLSearchParams(location.search).has("sinov"))finish()});
+$("yesBtn").addEventListener("click",()=>{if(!missing().length||sinovMode())finish()});
 document.addEventListener("visibilitychange",()=>{
   if(!started||done||igActive)return;
   if(document.hidden){leaves++;save()}
