@@ -374,6 +374,9 @@ h1{font-family:var(--f-display);font-size:clamp(24px,4.6vw,32px);font-weight:700
 .venn circle{fill:none;stroke:var(--navy);stroke-width:2}
 .venn path{fill:var(--navy-soft)}
 .venn text{font-family:var(--f-ui);font-size:15px;font-weight:600;fill:var(--ink);text-anchor:middle;dominant-baseline:middle}
+.venn.cap{width:280px}
+.venn rect{fill:none;stroke:var(--line);stroke-width:1.5}
+.venn text.cp{font-size:11px}
 
 .invite{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--navy);color:var(--paper);border-color:var(--navy)}
 .invite p{margin:0;font-family:var(--f-ui);font-size:14px;max-width:44ch;opacity:.92}
@@ -696,6 +699,11 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
         <span class="arbtns"><button class="btn gold" id="aRankPng" type="button">Reytingni rasm qilib olish</button>
         <button class="btn ghost" id="aRefresh" type="button">Yangilash</button></span>
       </div>
+      <div class="arow" id="aRasch" hidden>
+        <span class="note" id="aRaschMsg"></span>
+        <span class="arbtns"><button class="btn gold" id="aRaschGo" type="button">Rash bo‘yicha hisoblash va e’lon qilish</button>
+        <button class="btn ghost" id="aRaschOff" type="button">E’lonni bekor qilish</button></span>
+      </div>
       <div class="alist" id="aRows"></div>
       <section class="card afb" id="aFb" hidden>
         <h3>O‘quvchilar fikrlari</h3>
@@ -766,6 +774,17 @@ const Q0=[
 ];
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
+  konst:{
+    q:null,key:"",tahlil:null,skey:"huquq-konst-v1",paid:true,free:true,gold:true,insta:true,group:"qonun",
+    rasch:true, // natija Rash modeli bo'yicha: test tugagach ball ko'rsatilmaydi, admin hisoblagach hammaga birga e'lon qilinadi
+    n:30,score:"count",sep:true,top:27,limit:60,
+    rule:"Test 30 ta savoldan iborat: 26 tasi variantli, 4 tasining javobi raqam bilan yoziladi. Vaqt 60 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.",
+    mavzu:["Asosiy prinsiplar", "Inson huquqlari kafolatlari", "Qonun ijodkorligi", "Fuqarolarning burchlari", "Prezident", "Mahalliy hokimiyat", "Sud hokimiyati", "Qoraqalpog‘iston Respublikasi", "Shaxsiy huquq va erkinliklar", "Oliy Majlis", "Asosiy prinsiplar", "Prezident", "Ijtimoiy-iqtisodiy huquqlar", "Shaxsiy huquq va erkinliklar", "Shaxsiy huquq va erkinliklar", "Qonun ijodkorligi", "Vazirlar Mahkamasi", "Inson huquqlari kafolatlari", "Ijtimoiy-iqtisodiy huquqlar", "Davlat organlari vakolatlari", "Konstitutsiya tuzilishi", "Davlat organlari vakolatlari", "Asosiy prinsiplar", "Qonun ijodkorligi", "Konstitutsiya tuzilishi", "Oliy Majlis", "Oliy Majlis", "Qonun ijodkorligi", "Qonun ijodkorligi", "Konstitutsiya tuzilishi"],
+    endpoint:EP,
+    title:"KONSTITUTSIYA BO‘YICHA TEST",doc:"Konstitutsiya testi",org:"Konstitutsiya bo‘yicha test · milliy sertifikat namunasida",
+    meta:"30 ta savol (26 ta variantli, 4 ta yozma) · 60 daqiqa · Natija Rash modeli bo‘yicha e’lon qilinadi",
+    desc:"O‘zbekiston Respublikasi Konstitutsiyasi bo‘yicha testda",copy:"Konstitutsiya bo‘yicha test",sub:"Testda ishtirok etgani uchun"
+  },
   nhh:{
     q:null,key:"",tahlil:null,skey:"huquq-nhh-v1",paid:true,free:true,gold:true,insta:true,locked:true,group:"qonun",
     n:45,score:"count",sep:true,top:40,limit:90,
@@ -881,9 +900,9 @@ function show(i){
   const st=$("qstem");st.textContent="";const n=document.createElement("span");n.className="n";n.textContent=(i+1)+".";st.append(n,document.createTextNode(q[0]));
   const ex=$("qextra");ex.textContent="";
   $("qbody").classList.toggle("two",!!q[1]);
-  if(q[1]){const va=vennAfter(q);if(q[3]==="venn"&&!va)ex.appendChild(venn());const mk=markable(q[1]);
+  if(q[1]){const va=vennAfter(q);if(q[3]==="venn"&&!va)ex.appendChild(venn(q));const mk=markable(q[1]);
     q[1].forEach((t,li)=>{
-      if(!mk[li]){const p=document.createElement("p");p.textContent=t;ex.appendChild(p);if(li===0&&va)ex.appendChild(venn());return}
+      if(!mk[li]){const p=document.createElement("p");p.textContent=t;ex.appendChild(p);if(li===0&&va)ex.appendChild(venn(q));return}
       const m=(marks[i]||{})[li]||0;
       const row=document.createElement("div");row.className="mrow"+(m===1?" yes":m===-1?" no":"");
       const p=document.createElement("p");p.textContent=t;
@@ -923,10 +942,20 @@ function show(i){
 }
 // I/II/III ta'rifi birinchi qatorda bo'lsa, diagramma shu qatordan keyin chiziladi
 const vennAfter=q=>q[3]==="venn"&&!!q[1]&&/^I\. .*II\. .*III\./.test(q[1][0]);
-function extraLines(ex,q,mk){const va=vennAfter(q);if(q[3]==="venn"&&!va)ex.appendChild(venn());
-  q[1].forEach((t,li)=>{ex.appendChild(mk("p",null,t));if(li===0&&va)ex.appendChild(venn())})}
-function venn(){
+function extraLines(ex,q,mk){const va=vennAfter(q);if(q[3]==="venn"&&!va)ex.appendChild(venn(q));
+  q[1].forEach((t,li)=>{ex.appendChild(mk("p",null,t));if(li===0&&va)ex.appendChild(venn(q))})}
+function venn(q){
   const NS="http://www.w3.org/2000/svg",el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e};
+  const o=q&&q[4]&&typeof q[4]==="object"?q[4]:null;
+  if(o){ // sarlavhali diagramma: doiralar nomi tepada, tashqi soha (masalan, IV) o'ng pastda
+    const lab=Array.isArray(o.lab)?o.lab:["I","II","III"],cap=Array.isArray(o.cap)?o.cap:["",""];
+    const s=el("svg",{viewBox:"0 0 260 168",class:"venn cap","aria-label":"Eyler-Venn diagrammasi: "+cap[0]+" va "+cap[1]+" doiralari, kesishmasi "+lab[1]});
+    s.append(el("rect",{x:1,y:1,width:258,height:166,rx:6}),el("path",{d:"M130 50.3A55 55 0 0 1 130 137.7A55 55 0 0 1 130 50.3Z"}),el("circle",{cx:100,cy:94,r:55}),el("circle",{cx:160,cy:94,r:55}));
+    [[lab[0],75,94],[lab[1],130,94],[lab[2],185,94]].forEach(([t,x,y])=>{const e=el("text",{x,y});e.textContent=t;s.appendChild(e)});
+    [[cap[0],80],[cap[1],180]].forEach(([t,x])=>{const e=el("text",{x,y:22,class:"cp"});e.textContent=t;s.appendChild(e)});
+    if(o.out){const e=el("text",{x:240,y:150});e.textContent=o.out;s.appendChild(e)}
+    return s;
+  }
   const s=el("svg",{viewBox:"0 0 220 130",class:"venn","aria-label":"Eyler-Venn diagrammasi: I va II doiralar, kesishmasi III"});
   s.append(el("path",{d:"M110 21.3A55 55 0 0 1 110 108.7A55 55 0 0 1 110 21.3Z"}),el("circle",{cx:80,cy:65,r:55}),el("circle",{cx:140,cy:65,r:55}));
   [["I",55],["III",110],["II",165]].forEach(([t,x])=>{const e=el("text",{x,y:65});e.textContent=t;s.appendChild(e)});
@@ -1004,7 +1033,7 @@ function startPaid(raw){
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
-        tugagan:"Bu kod bilan test allaqachon yechilgan.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
+        tugagan:"Bu kod bilan test allaqachon yechilgan.",kutish:"Siz bu testni yechib bo‘lgansiz. Natijalar hali e’lon qilinmagan.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
     paid={code:d.code||code,q:d.q};
     // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
@@ -1067,15 +1096,20 @@ $("fbSend").addEventListener("click",()=>{
 function finishPaid(again){
   $("startView").hidden=true;$("testView").hidden=true;$("lockedView").hidden=true;$("pendView").hidden=false;
   document.body.classList.remove("testmode");document.querySelector("header.top").hidden=false;
-  $("pendMsg").textContent="Natija hisoblanmoqda…";$("pendRetry").hidden=true;
+  $("pendMsg").textContent=paid.wait?"Natija tekshirilmoqda…":"Natija hisoblanmoqda…";$("pendRetry").hidden=true;
   fetch(ENDPOINT+"?"+qs(Object.assign({action:"finish",test:TID,code:paid.code||"",device:deviceId,answers:ansStr(),leaves,timeUp:timeUp?1:0,fb},tgInfo())))
     .then(r=>r.json()).then(d=>{
+      if(d.ok&&d.kutish){ // Rash testi: javoblar qabul qilindi, natija keyin e'lon qilinadi
+        if(!paid.first){paid.first={ans:ans.slice(),endAt,t0,timeUp,leaves};paid.attempt=1}
+        paid.wait=true;savePaid();
+        $("pendMsg").textContent="Javoblaringiz qabul qilindi. Natijalar test yopilgach Rash modeli bo‘yicha hisoblanadi va barcha ishtirokchilarga bir vaqtda e’lon qilinadi. E’lon haqida Telegram kanalda xabar beriladi — shundan keyin shu sahifada ballingiz, o‘rningiz, to‘g‘ri javoblar va tahlil ochiladi.";
+        $("pendRetry").textContent="Natijani tekshirish";$("pendRetry").hidden=false;return}
       if(!d.ok||!d.key)throw new Error(d.error||"xato");
-      paid.key=d.key;paid.tahlil=d.tahlil;
+      paid.key=d.key;paid.tahlil=d.tahlil;paid.wait=false;if(d.rasch)paid.rasch=d.rasch;
       if(!paid.first){paid.first={ans:ans.slice(),endAt,t0,timeUp,leaves};paid.attempt=1}
       savePaid();applyPaid();sent=true;save();
       $("pendView").hidden=true;renderResult(again);
-    }).catch(()=>{$("pendMsg").textContent="Natijani yuborib bo‘lmadi. Internetni tekshirib, «Qayta urinish» tugmasini bosing. Javoblaringiz saqlangan.";$("pendRetry").hidden=false});
+    }).catch(()=>{$("pendRetry").textContent="Qayta urinish";$("pendMsg").textContent="Natijani yuborib bo‘lmadi. Internetni tekshirib, «Qayta urinish» tugmasini bosing. Javoblaringiz saqlangan.";$("pendRetry").hidden=false});
 }
 $("pendRetry").addEventListener("click",()=>finishPaid(false));
 // Kod egasi testni cheksiz qayta yechadi; natija reytingga va sertifikatga ta'sir qilmaydi
@@ -1146,7 +1180,7 @@ function drawCert(d){
   // ball paneli
   y+=4;const AF='"Anton", Impact, sans-serif',ls=v=>{if("letterSpacing" in x)x.letterSpacing=v};
   const lab=(t,lx,ly)=>{font(600,14);ls("2.5px");x.fillStyle="#d8e4e0";x.fillText(t,lx,ly);const w=x.measureText(t).width;ls("0px");return w};
-  const LB=d.lab||"TO‘PLANGAN BALL",MX="/ "+(d.max||50);font(600,14);ls("2.5px");const wL1=x.measureText(LB).width,wL2=x.measureText("SANA").width;ls("0px");
+  const LB=d.lab||"TO‘PLANGAN BALL",MX=d.max===""?"":"/ "+(d.max||50);font(600,14);ls("2.5px");const wL1=x.measureText(LB).width,wL2=x.measureText("SANA").width;ls("0px");
   x.font="400 108px "+AF;const wB=x.measureText(d.ball).width;font(600,35);const wS=x.measureText(MX).width;
   x.font="400 40px "+AF;const wD=x.measureText(d.date).width;
   const pl=30,pr=36,g=32,c1=Math.max(wL1,wB+12+wS),c2=Math.max(wL2,wD),pw=pl+c1+g*2+c2+pr,ph=150;
@@ -1222,7 +1256,8 @@ function renderResult(again){
   const retake=!!(T.paid&&paid.first&&(paid.attempt||1)>1);
   const first=retake?score(paid.first.ans):{sec,total};
   const cTotal=first.total,cDate=retake?dstr(paid.first.endAt):date;
-  const special=CNT?topB(cTotal):first.sec[0]*9+first.sec[1]*15+first.sec[2]*26>430;
+  const RS=T.rasch&&paid.rasch?paid.rasch:null; // Rash testi: e'lon qilingan ball, daraja va o'rin
+  const special=RS?/^A/.test(RS.daraja||""):CNT?topB(cTotal):first.sec[0]*9+first.sec[1]*15+first.sec[2]*26>430;
   const ag=$("again");ag.classList.toggle("rnote",retake);
   const un=CNT?" ta to‘g‘ri javob":" ball";
   ag.textContent=retake?"Bu "+paid.attempt+"-urinish natijasi: "+bf(total)+un+". Reyting va sertifikatda faqat birinchi natijangiz — "+bf(cTotal)+un+" hisoblanadi."
@@ -1238,17 +1273,18 @@ function renderResult(again){
     :T.desc+" faol ishtirok etib, "+N+" ta savoldan "+cTotal+" tasiga to‘g‘ri javob bergani uchun tashakkur bildiriladi."):(special
     ?T.desc+" 50 balldan "+fmt(cTotal)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
     :T.desc+" faol ishtirok etib, 50 balldan "+fmt(cTotal)+" ball to‘plagani uchun tashakkur bildiriladi.");
-  $("cBall").textContent=bf(cTotal);$("cDate").textContent=cDate;
-  const bs=$("cBall").nextElementSibling;if(bs)bs.textContent="/ "+MAXB;
-  const bl=document.querySelector(".score .sc .lab");if(bl)bl.textContent=CNT?"To‘g‘ri javoblar":"To‘plangan ball";
+  if(RS)$("cDesc").textContent=T.desc+" "+N+" ta savoldan "+cTotal+" tasiga to‘g‘ri javob berib, Rash modeli bo‘yicha "+fmt(RS.ball)+" ball"+(RS.daraja?" ("+RS.daraja+" daraja)":"")+" to‘plagani uchun.";
+  $("cBall").textContent=RS?fmt(RS.ball):bf(cTotal);$("cDate").textContent=cDate;
+  const bs=$("cBall").nextElementSibling;if(bs)bs.textContent=RS?(RS.daraja?"· "+RS.daraja:""):"/ "+MAXB;
+  const bl=document.querySelector(".score .sc .lab");if(bl)bl.textContent=RS?"Rash bali":CNT?"To‘g‘ri javoblar":"To‘plangan ball";
   showMem(CNT?cTotal/N*50:cTotal);
   const pz=$("cPrize");pz.hidden=true;pz.textContent="";
   if(false){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
   $("prizeAct").hidden=true;
   certData={special,name,title:special?"SERTIFIKAT":"TASHAKKURNOMA",sub:subL,
-    desc:$("cDesc").textContent,ball:bf(cTotal),date:cDate,max:MAXB,lab:CNT?"TO‘G‘RI JAVOBLAR":"TO‘PLANGAN BALL",
+    desc:$("cDesc").textContent,ball:RS?fmt(RS.ball):bf(cTotal),date:cDate,max:RS?"":MAXB,lab:RS?"RASH BALI":CNT?"TO‘G‘RI JAVOBLAR":"TO‘PLANGAN BALL",
     prize:""};
-  $("cFacts").textContent=(retake?paid.attempt+"-urinish · ":"")+"To‘g‘ri javoblar: "+corr+" / "+N+" · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
+  $("cFacts").textContent=(RS&&RS.orin?"Reytingdagi o‘rin: "+RS.orin+" / "+RS.jami+" · ":"")+(retake?paid.attempt+"-urinish · ":"")+"To‘g‘ri javoblar: "+corr+" / "+N+" · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
   const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
   const bh=document.querySelector("#bars").previousElementSibling;if(bh)bh.textContent=CNT?"Savol turlari bo‘yicha natija":"Bo‘limlar bo‘yicha natija";
   if(CNT){const nOpen=Q.filter((q,i)=>isOpen(i)).length,tot=[N-nOpen,nOpen];
@@ -1409,12 +1445,30 @@ function loadAdmin(){
   fetch(ep+"?key="+encodeURIComponent(pw)+"&test="+adminTest).then(r=>r.json()).then(d=>{
     if(d.error){$("aErr").textContent="Parol noto‘g‘ri.";return}
     try{sessionStorage.setItem("huquq-admin",pw)}catch(e){}
-    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));renderAdmin();
+    $("aErr").textContent="";$("aLogin").hidden=true;$("aBody").hidden=false;adminRows=(d.rows||[]).filter(r=>!hidden(r.ism)&&!(Number(r.urinish)>1));adminRasch=d.rasch||null;
+    if(adminRasch)adminRows.forEach(r=>{if(r.rasch!=null){r.togriSoni=r.ball;r.ball=Number(r.rasch)}});
+    raschPanel();renderAdmin();
     const withCodes=TESTS[adminTest].paid&&!TESTS[adminTest].free;$("aCodes").hidden=!withCodes;if(withCodes)loadCodes();
     loadFeedback();
   }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshirib, qayta urinib ko‘ring."});
 }
-let adminRows=[];
+let adminRows=[],adminRasch=null;
+// Rash testi: hisoblash tugmasi va e'lon holati
+const confirmMsg=m=>{try{return window.confirm(m)}catch(e){return true}};
+function raschPanel(){
+  const on=!!TESTS[adminTest].rasch;$("aRasch").hidden=!on;if(!on)return;
+  $("aRaschMsg").textContent=adminRasch?"Natijalar e’lon qilingan: "+adminRasch.sana+" · "+adminRasch.n+" ishtirokchi. Test yangi urinishlar uchun yopiq.":"Natijalar hali e’lon qilinmagan. O‘quvchilar ballini ko‘rmayapti.";
+  $("aRaschGo").textContent=adminRasch?"Qayta hisoblash":"Rash bo‘yicha hisoblash va e’lon qilish";$("aRaschOff").hidden=!adminRasch;
+}
+function raschAct(action){
+  const at=adminTest,ep=TESTS[at].endpoint;$("aErr").textContent=action==="rasch"?"Hisoblanmoqda…":"Bekor qilinmoqda…";
+  fetch(ep+"?"+qs({action,key:$("aPass").value,test:at})).then(r=>r.json()).then(d=>{
+    if(d.error){$("aErr").textContent=d.error==="kam"?"Hisoblash uchun ishtirokchilar yetarli emas ("+(d.n||0)+" ta).":"Xatolik: "+d.error;return}
+    $("aErr").textContent=action==="rasch"?d.n+" ishtirokchi bo‘yicha hisoblandi. Ballar Google jadvalning «Rash» varag‘ida.":"";loadAdmin();
+  }).catch(()=>{$("aErr").textContent="Ulanib bo‘lmadi. Internetni tekshiring."});
+}
+$("aRaschGo").addEventListener("click",()=>{if(confirmMsg("Natijalar Rash modeli bo‘yicha hisoblanib, hammaga e’lon qilinadi va test yangi urinishlar uchun yopiladi. Davom etasizmi?"))raschAct("rasch")});
+$("aRaschOff").addEventListener("click",()=>{if(confirmMsg("E’lon bekor qilinsa, o‘quvchilar ballini yana ko‘rmaydi va test qayta ochiladi. Davom etasizmi?"))raschAct("raschoff")});
 // Test muallifining sinov natijalari reytingda ko'rsatilmaydi
 const HIDE_NAMES=["jubatxanov hasilbek","hasilbek jubatxanov","karimov aziz","aziz karimov"];
 const hidden=n=>HIDE_NAMES.includes(String(n||"").trim().replace(/\s+/g," ").toLowerCase());
@@ -1476,8 +1530,8 @@ function renderAdmin(){
   const rows=(all?adminRows:first).slice().sort(byRank);
   const avg=first.length?first.reduce((s,r)=>s+r.ball,0)/first.length:0;
   const st=$("aStats");st.textContent="";
-  const at=TESTS[adminTest],aCnt=at.score==="count",aTop=b=>aCnt?b>=(at.top||at.n):b>43;
-  [["Ishtirokchilar",first.length],[aCnt?"O‘rtacha natija":"O‘rtacha ball",fmt(avg)],[aCnt?(at.top||at.n)+"+ to‘g‘ri":"43+ ball",first.filter(r=>aTop(r.ball)).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
+  const at=TESTS[adminTest],rs=!!(at.rasch&&adminRasch),aCnt=at.score==="count"&&!rs,aTop=b=>rs?b>=65:aCnt?b>=(at.top||at.n):b>43;
+  [["Ishtirokchilar",first.length],[rs?"O‘rtacha Rash bali":aCnt?"O‘rtacha natija":"O‘rtacha ball",fmt(avg)],[rs?"A va A+ daraja":aCnt?(at.top||at.n)+"+ to‘g‘ri":"43+ ball",first.filter(r=>aTop(r.ball)).length],["Takroriy urinish",adminRows.length-first.length]].forEach(([k,v])=>{
     const d=document.createElement("div");const b=document.createElement("b");b.textContent=v;d.append(b,document.createTextNode(k));st.appendChild(d)});
   const box=$("aRows");box.textContent="";let rank=0;const AK=TESTS[adminTest].key?decodeKey(TESTS[adminTest].key):[];
   const mk=(tag,cls,txt)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e};
@@ -1487,10 +1541,10 @@ function renderAdmin(){
     if(manyLeaves(r)&&!sep){sep=true;box.appendChild(mk("div","asep","Sahifadan "+MAX_LEAVES+" martadan ko‘p chiqqanlar — reyting oxirida"))}
     const c=mk("div","arow2"+(r.takror?" rep":(++rank,aTop(r.ball)&&!manyLeaves(r)?" top":""))+(manyLeaves(r)?" many":""));
     c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
-    const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null," / "+(aCnt?at.n:50)));c.appendChild(bl);
+    const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null,rs?(r.daraja?" · "+r.daraja:""):" / "+(at.score==="count"?at.n:50)));c.appendChild(bl);
     const m=mk("div","meta");
     const sec=Number(r.soniya)||0;
-    m.append(kv("To‘g‘ri",r.togri+"/"+(at.n||30)));if(!aCnt)m.append(kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin));m.append(kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)+(manyLeaves(r)?" ⚠":"")));
+    m.append(kv("To‘g‘ri",r.togri+"/"+(at.n||30)));if(at.score!=="count")m.append(kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin));m.append(kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)+(manyLeaves(r)?" ⚠":"")));
     m.append(kv("Sana",r.sana));
     c.appendChild(m);
     const ja=String(r.javoblar||"");

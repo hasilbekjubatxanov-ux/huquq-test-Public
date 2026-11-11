@@ -6,6 +6,7 @@
 //   Test8910.gs  — const T8910_DATA = {...};
 //   Test811.gs   — const T811_DATA = {...};
 //   NhhData.gs   — const NHH_DATA = {...};
+//   KonstData.gs — const KONST_DATA = {...};
 // O'quvchi testni boshlagandagina savollarni oladi, kalit va tahlil esa test tugagach beriladi.
 // Bu fayllar faqat Google skriptga qo'yiladi va GitHub'ga yuklanmaydi.
 
@@ -16,12 +17,15 @@ const ADMIN_PAROL = "BU_YERGA_PAROL_YOZING";
 // bepul: true — kodsiz, hamma uchun ochiq (har bir qurilma/Telegram akkauntga yashirin kod avtomatik beriladi),
 // yopiq: true — yangi urinish boshlanmaydi, avval boshlaganlar natijasini ko'raveradi.
 // sanash: true — natija to'g'ri javoblar soni (masalan, 45 dan 40), yozma javobli savollar bilan.
+// rasch: true — natija Rash modeli bo'yicha: o'quvchi test tugagach ballini ko'rmaydi, admin "Rash hisoblash"ni
+// bosgach hamma natija bir vaqtda e'lon qilinadi va test yangi urinishlar uchun yopiladi.
 const TESTLAR = {
   asosiy: { varaq: "Asosiy test", kalit: "DABCADBCADBCADBACDBCBDCADBCADB" },
   pro:    { varaq: "PRO test", data: "PRO_DATA", kodVaraq: "Kodlar", bepul: true, yopiq: true },
   t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true },
   t811:   { varaq: "11-sinf PRO test", data: "T811_DATA", kodVaraq: "Kodlar 11 PRO", bepul: true },
-  nhh:    { varaq: "NHH PRO test", data: "NHH_DATA", kodVaraq: "Kodlar NHH", bepul: true, yopiq: true, sanash: true, daqiqa: 90 }
+  nhh:    { varaq: "NHH PRO test", data: "NHH_DATA", kodVaraq: "Kodlar NHH", bepul: true, yopiq: true, sanash: true, daqiqa: 90 },
+  konst:  { varaq: "Konstitutsiya test", data: "KONST_DATA", kodVaraq: "Kodlar Konst", bepul: true, sanash: true, rasch: true }
 };
 function data_(id) {
   const n = TESTLAR[id].data;
@@ -29,6 +33,7 @@ function data_(id) {
   if (n === "T8910_DATA") return typeof T8910_DATA !== "undefined" ? T8910_DATA : null;
   if (n === "T811_DATA") return typeof T811_DATA !== "undefined" ? T811_DATA : null;
   if (n === "NHH_DATA") return typeof NHH_DATA !== "undefined" ? NHH_DATA : null;
+  if (n === "KONST_DATA") return typeof KONST_DATA !== "undefined" ? KONST_DATA : null;
   return null;
 }
 function pullik_(id) { return !!TESTLAR[id].data; }
@@ -175,6 +180,8 @@ function doGet(e) {
   if (p.action === "codes") return json_(kodlar_(kodTestId_(p.test)));
   if (p.action === "feedback") return json_(fikrlar_(testId_(p.test)));
   if (p.action === "gen") return json_(qulf_(function () { return kodYarat_(kodTestId_(p.test), Number(p.n) || 10); }));
+  if (p.action === "rasch") return json_(qulf_(function () { return raschHisobla_(testId_(p.test)); }));
+  if (p.action === "raschoff") return json_(qulf_(function () { return raschBekor_(testId_(p.test)); }));
   return json_(reyting_(testId_(p.test)));
 }
 
@@ -210,18 +217,22 @@ function boshlash_(id, p) {
   const D = data_(id), T = TESTLAR[id];
   if (!D) return { error: "yoq" };
   const device = String(p.device || ""), tgId = String(p.tgId || "");
+  // Rash testi: natijalar e'lon qilingach yangi urinish boshlanmaydi
+  const elon = T.rasch ? raschElon_(id) : null, yopiq = T.yopiq || !!elon;
   let kod = kodNorm_(p.code);
   if (!kod && T.bepul) {
     if (!device && !tgId) return { error: "kod" };
     const sinov = p.sinov && p.sinov === ADMIN_PAROL; // yopiq testni admin sinab ko'rishi
-    kod = egaTop_(id, device, tgId) || (T.yopiq && !sinov ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
+    kod = egaTop_(id, device, tgId) || (yopiq && !sinov ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
     if (!kod) return { error: "yopiq" };
   }
   if (kod.length < 6) return { error: "kod" };
   const k = kodTop_(id, kod);
   if (!k) return { error: "kod" };
   const holat = String(k.v[1]);
-  if (T.yopiq && holat !== "boshlangan" && holat !== "tugagan" && !(p.sinov && p.sinov === ADMIN_PAROL)) return { error: "yopiq" };
+  if (yopiq && holat !== "boshlangan" && holat !== "tugagan" && !(p.sinov && p.sinov === ADMIN_PAROL)) return { error: "yopiq" };
+  // Rash testi: natija e'lon qilinmaguncha qayta yechib bo'lmaydi (kalit va tahlil ochilib qolmasligi uchun)
+  if (holat === "tugagan" && T.rasch && !elon) return { error: egasi_(k, device, tgId) ? "kutish" : "band" };
   if (holat === "tugagan") {
     // Qayta urinish: cheksiz, reytingga va sertifikatga ta'sir qilmaydi
     if (!egasi_(k, device, tgId)) return { error: "band" };
@@ -249,6 +260,7 @@ function tugatish_(id, p) {
   const kod = kodNorm_(p.code), device = String(p.device || ""), tgId = String(p.tgId || "");
   const k = kodTop_(id, kod);
   if (!k || !egasi_(k, device, tgId)) return { error: "kod" };
+  const rasch = !!TESTLAR[id].rasch;
   let javoblar, h;
   if (String(k.v[1]) === "tugagan" && k.v[11] instanceof Date) {
     // Qayta urinish: faqat o'quvchiga ko'rsatiladi, jadvalga va reytingga yozilmaydi
@@ -269,6 +281,11 @@ function tugatish_(id, p) {
     k.sh.getRange(k.row, 8, 1, 5).setValues([[new Date(), h.ball, javoblar, 1, ""]]);
   } else {
     return { error: "kod" };
+  }
+  if (rasch) {
+    // Natijalar e'lon qilinmaguncha o'quvchiga ball, kalit va tahlil berilmaydi
+    if (!raschElon_(id)) return { ok: true, kutish: true };
+    return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, rasch: raschTop_(id, kod) };
   }
   return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball };
 }
@@ -327,8 +344,167 @@ function reyting_(id) {
     };
   });
   rows.sort(function (a, b) { return b.ball - a.ball || a.soniya - b.soniya; });
+  if (TESTLAR[id].rasch) {
+    const elon = raschElon_(id), xarita = elon ? raschXarita_(id) : {};
+    rows.forEach(function (r) { const x = xarita[kodNorm_(r.kod)]; if (x && !r.takror) { r.rasch = x.ball; r.daraja = x.daraja; r.theta = x.theta; } });
+    return { rows: rows, rasch: elon };
+  }
   return { rows: rows };
 }
+
+// ───────── Rash modeli ─────────
+// Savol qiyinligi va o'quvchi qobiliyati (teta, logit) javoblar jadvalidan birgalikda baholanadi (JMLE).
+// Ball = 50 + 10 × (teta − o'rtacha) / standart og'ish. Darajalar milliy sertifikatdagi chegaralar bo'yicha.
+const RASCH_DARAJA = [[70, "A+"], [65, "A"], [60, "B+"], [55, "B"], [50, "C+"], [46, "C"]];
+const RASCH_USTUNLAR = ["O‘rin", "Ism", "To‘g‘ri", "Teta", "Ball", "Daraja", "Kod", "Soniya", "Chiqishlar"];
+const RASCH_SAVOL_USTUNLAR = ["Savol", "To‘g‘ri topganlar", "Foiz", "Qiyinlik (logit)", "Izoh"];
+function raschVaraqNom_(id) { return "Rash " + TESTLAR[id].varaq; }
+function raschSavolNom_(id) { return "Rash savollar " + TESTLAR[id].varaq; }
+function daraja_(ball) {
+  for (let i = 0; i < RASCH_DARAJA.length; i++) if (ball >= RASCH_DARAJA[i][0]) return RASCH_DARAJA[i][1];
+  return "";
+}
+// E'lon qilingan bo'lsa — { sana, n }, aks holda null
+function raschElon_(id) {
+  const v = PropertiesService.getScriptProperties().getProperty("rasch_" + id);
+  if (!v) return null;
+  try { return JSON.parse(v); } catch (e) { return null; }
+}
+function raschBekor_(id) {
+  PropertiesService.getScriptProperties().deleteProperty("rasch_" + id);
+  return { ok: true };
+}
+// Javoblar satridan 0/1 vektor
+function togriVektor_(id, javoblar) {
+  const k = kalit_(id), sanash = !!TESTLAR[id].sanash;
+  const a = sanash ? String(javoblar || "").split("|") : String(javoblar || "").split("");
+  const out = [];
+  for (let i = 0; i < k.length; i++) {
+    const j = a[i] || "-";
+    out.push((String(k[i]).length === 1 && /[ABCD]/.test(k[i]) ? j === k[i] : yozmaTogri_(j, k[i])) ? 1 : 0);
+  }
+  return out;
+}
+function logistik_(x) { return 1 / (1 + Math.exp(-x)); }
+// r ta to'g'ri javobga mos teta (b — savollar qiyinligi). 0 va to'liq natija 0,3 ga suriladi.
+function tetaTop_(r, b) {
+  const L = b.length;
+  const rr = r <= 0 ? 0.3 : r >= L ? L - 0.3 : r;
+  let t = Math.log(rr / (L - rr));
+  for (let it = 0; it < 100; it++) {
+    let e = 0, v = 0;
+    for (let i = 0; i < L; i++) { const p = logistik_(t - b[i]); e += p; v += p * (1 - p); }
+    const d = Math.max(-1, Math.min(1, (rr - e) / Math.max(v, 1e-9)));
+    t += d;
+    if (Math.abs(d) < 1e-6) break;
+  }
+  return t;
+}
+// X — o'quvchilar × savollar (0/1). Qaytaradi: { b: [qiyinlik yoki null], faol: [savol indekslari], teta: [...] }
+function rasch_(X) {
+  const P = X.length, L = P ? X[0].length : 0;
+  let savol = [], odam = [];
+  for (let i = 0; i < L; i++) savol.push(i);
+  for (let p = 0; p < P; p++) odam.push(p);
+  // Hamma topgan / hech kim topmagan savollar va 0 / to'liq natijali o'quvchilar baholashdan chiqariladi
+  for (let ozgardi = true; ozgardi;) {
+    ozgardi = false;
+    const o2 = odam.filter(function (p) { let r = 0; savol.forEach(function (i) { r += X[p][i]; }); return r > 0 && r < savol.length; });
+    if (o2.length !== odam.length) { odam = o2; ozgardi = true; }
+    const s2 = savol.filter(function (i) { let s = 0; odam.forEach(function (p) { s += X[p][i]; }); return s > 0 && s < odam.length; });
+    if (s2.length !== savol.length) { savol = s2; ozgardi = true; }
+  }
+  const Ls = savol.length, Np = odam.length;
+  if (Ls < 2 || Np < 2) return null;
+  const s = savol.map(function (i) { let c = 0; odam.forEach(function (p) { c += X[p][i]; }); return c; });
+  const nr = []; for (let r = 0; r <= Ls; r++) nr.push(0);
+  odam.forEach(function (p) { let r = 0; savol.forEach(function (i) { r += X[p][i]; }); nr[r]++; });
+  let b = s.map(function (c) { return Math.log((Np - c) / c); });
+  const markaz = function () { const m = b.reduce(function (a, x) { return a + x; }, 0) / Ls; b = b.map(function (x) { return x - m; }); };
+  markaz();
+  const th = []; for (let r = 0; r <= Ls; r++) th.push(r > 0 && r < Ls ? Math.log(r / (Ls - r)) : 0);
+  for (let it = 0; it < 300; it++) {
+    let maxd = 0;
+    for (let i = 0; i < Ls; i++) {
+      let e = 0, v = 0;
+      for (let r = 1; r < Ls; r++) if (nr[r]) { const p = logistik_(th[r] - b[i]); e += nr[r] * p; v += nr[r] * p * (1 - p); }
+      const d = Math.max(-1, Math.min(1, (e - s[i]) / Math.max(v, 1e-9)));
+      b[i] += d; maxd = Math.max(maxd, Math.abs(d));
+    }
+    markaz();
+    for (let r = 1; r < Ls; r++) if (nr[r]) {
+      let e = 0, v = 0;
+      for (let i = 0; i < Ls; i++) { const p = logistik_(th[r] - b[i]); e += p; v += p * (1 - p); }
+      const d = Math.max(-1, Math.min(1, (r - e) / Math.max(v, 1e-9)));
+      th[r] += d; maxd = Math.max(maxd, Math.abs(d));
+    }
+    if (maxd < 1e-5) break;
+  }
+  // JMLE siljishini tuzatish
+  b = b.map(function (x) { return x * (Ls - 1) / Ls; });
+  const tetaR = []; for (let r = 0; r <= Ls; r++) tetaR.push(tetaTop_(r, b));
+  const teta = X.map(function (row) { let r = 0; savol.forEach(function (i) { r += row[i]; }); return tetaR[r]; });
+  const bAll = []; for (let i = 0; i < L; i++) bAll.push(null);
+  savol.forEach(function (i, k) { bAll[i] = b[k]; });
+  return { b: bAll, faol: savol, teta: teta };
+}
+// Admin: Rash bo'yicha hisoblash, varaqlarga yozish va e'lon qilish
+function raschHisobla_(id) {
+  if (!TESTLAR[id].rasch) return { error: "rasch" };
+  const qiymatlar = natijaVaraq_(id).getDataRange().getValues().slice(1);
+  const korilgan = {}, qatnashchi = [];
+  qiymatlar.forEach(function (r) {
+    const kim = [String(r[14] || ""), String(r[15] || ""), String(r[1] || "").trim().toLowerCase()];
+    const takror = Number(r[17]) > 1 || kim.some(function (x) { return x && korilgan[x]; });
+    kim.forEach(function (x) { if (x) korilgan[x] = true; });
+    if (takror) return;
+    qatnashchi.push({ ism: String(r[1]).replace(/^'/, ""), kod: String(r[16] || ""), soniya: Number(r[10]) || 0,
+      chiqish: Number(r[12]) || 0, x: togriVektor_(id, javoblar_(r[8], id)) });
+  });
+  if (qatnashchi.length < 2) return { error: "kam", n: qatnashchi.length };
+  const R = rasch_(qatnashchi.map(function (q) { return q.x; }));
+  if (!R) return { error: "kam", n: qatnashchi.length };
+  const n = qatnashchi.length;
+  const ort = R.teta.reduce(function (a, x) { return a + x; }, 0) / n;
+  const sd = Math.sqrt(R.teta.reduce(function (a, x) { return a + (x - ort) * (x - ort); }, 0) / n);
+  qatnashchi.forEach(function (q, i) {
+    q.togri = q.x.reduce(function (a, x) { return a + x; }, 0);
+    q.teta = Math.round(R.teta[i] * 100) / 100;
+    q.ball = Math.round((sd > 0 ? 50 + 10 * (R.teta[i] - ort) / sd : 50) * 10) / 10;
+    q.daraja = daraja_(q.ball);
+  });
+  qatnashchi.sort(function (a, b) { return b.ball - a.ball || a.chiqish - b.chiqish || a.soniya - b.soniya; });
+  const sh = varaq_(raschVaraqNom_(id), RASCH_USTUNLAR);
+  if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, RASCH_USTUNLAR.length).clearContent();
+  sh.getRange(2, 1, n, RASCH_USTUNLAR.length).setValues(qatnashchi.map(function (q, i) {
+    return [i + 1, matn_(q.ism, 100), q.togri, q.teta, q.ball, q.daraja, q.kod, q.soniya, q.chiqish];
+  }));
+  const L = R.b.length, savollar = [];
+  for (let i = 0; i < L; i++) {
+    let c = 0; qatnashchi.forEach(function (q) { c += q.x[i]; });
+    savollar.push({ n: i + 1, togri: c, foiz: Math.round(c / n * 1000) / 10, b: R.b[i] == null ? null : Math.round(R.b[i] * 100) / 100 });
+  }
+  const sh2 = varaq_(raschSavolNom_(id), RASCH_SAVOL_USTUNLAR);
+  if (sh2.getLastRow() > 1) sh2.getRange(2, 1, sh2.getLastRow() - 1, RASCH_SAVOL_USTUNLAR.length).clearContent();
+  sh2.getRange(2, 1, L, RASCH_SAVOL_USTUNLAR.length).setValues(savollar.map(function (q) {
+    return [q.n, q.togri, q.foiz, q.b == null ? "" : q.b, q.b == null ? (q.togri === 0 ? "hech kim topmagan — hisobga kirmadi" : "hamma topgan — hisobga kirmadi") : ""];
+  }));
+  const elon = { sana: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd.MM.yyyy HH:mm"), n: n };
+  PropertiesService.getScriptProperties().setProperty("rasch_" + id, JSON.stringify(elon));
+  return { ok: true, n: n, sana: elon.sana, savollar: savollar };
+}
+// Kod → { ball, daraja, teta, orin, jami }
+function raschXarita_(id) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(raschVaraqNom_(id)), out = {};
+  if (!sh) return out;
+  const v = sh.getDataRange().getValues().slice(1).filter(function (r) { return r[0] !== ""; });
+  v.forEach(function (r) {
+    const k = kodNorm_(r[6]);
+    if (k) out[k] = { orin: Number(r[0]), togri: Number(r[2]), teta: Number(r[3]), ball: Number(r[4]), daraja: String(r[5]), jami: v.length };
+  });
+  return out;
+}
+function raschTop_(id, kod) { return raschXarita_(id)[kodNorm_(kod)] || null; }
 
 function json_(o) {
   return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
