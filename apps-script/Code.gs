@@ -96,8 +96,28 @@ function normJ_(v) {
 function yozmaTogri_(a, k) {
   if (!a || a === "-") return false;
   return String(k).split("|").some(function (x) {
-    return /^\d+$/.test(x) ? String(a).replace(/\D/g, "") === x : normJ_(a) === normJ_(x);
+    if (!/^\d+$/.test(x)) return normJ_(a) === normJ_(x);
+    // Son: "100000", "100 000", "100 ming", "yuz ming", "bir yil", "60 kun" — hammasi qabul qilinadi
+    return String(a).replace(/\D/g, "") === x || sonOqi_(a) === Number(x);
   });
+}
+// Javobdagi sonni o'qiydi: raqamlar va so'z bilan yozilgan sonlar (lotin va kirill), "ming", "yuz"
+const KIRILL_ = { "а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"j","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"x","ц":"ts","ч":"ch","ш":"sh","ъ":"","ь":"","э":"e","ю":"yu","я":"ya","ў":"o","қ":"q","ғ":"g","ҳ":"h" };
+const SONLAR_ = { bir: 1, ikki: 2, uch: 3, tort: 4, besh: 5, olti: 6, yetti: 7, sakkiz: 8, toqqiz: 9, on: 10,
+  yigirma: 20, ottiz: 30, qirq: 40, ellik: 50, oltmish: 60, yetmish: 70, sakson: 80, toqson: 90 };
+function sonOqi_(v) {
+  let s = String(v == null ? "" : v).toLowerCase().replace(/[а-яёўқғҳ]/g, function (c) { return KIRILL_[c] != null ? KIRILL_[c] : c; });
+  s = s.replace(/[ʻʼ‘’'`´]/g, "").replace(/(\d)[\s.,](?=\d{3}(\D|$))/g, "$1");
+  const t = s.match(/\d+|[a-z]+/g) || [];
+  let jami = 0, joriy = 0, bor = false;
+  t.forEach(function (w) {
+    if (/^\d+$/.test(w)) { joriy += Number(w); bor = true; }
+    else if (SONLAR_[w] != null) { joriy += SONLAR_[w]; bor = true; }
+    else if (w === "yuz") { joriy = (joriy || 1) * 100; bor = true; }
+    else if (w === "ming") { jami += (joriy || 1) * 1000; joriy = 0; bor = true; }
+    else if (w === "million" || w === "mln") { jami = (jami + (joriy || 1)) * 1000000; joriy = 0; bor = true; }
+  });
+  return bor ? jami + joriy : null;
 }
 // To'g'ri javoblar soni bo'yicha test (sanash: true): javoblar "|" bilan ajratilgan
 function hisoblaSanash_(id, javoblar) {
@@ -299,6 +319,7 @@ function tugatish_(id, p) {
   if (rasch) {
     // Natijalar e'lon qilinmaguncha o'quvchiga ball, kalit va tahlil berilmaydi
     if (sinovKod_(id, kod)) return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, sinov: true };
+    if (!raschElon_(id) && ertaRuxsat_(id, kod)) return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, erta: true };
     if (!raschElon_(id)) return { ok: true, kutish: true };
     return { ok: true, key: kalit_(id), tahlil: D.tahlil, ball: h.ball, rasch: raschTop_(id, kod) };
   }
@@ -382,6 +403,18 @@ function daraja_(ball) {
   return "";
 }
 // E'lon qilingan bo'lsa — { sana, n }, aks holda null
+// Erta natija: "Erta natija" varag'ida kodi yozilgan o'quvchi Rash e'lonini kutmasdan
+// to'g'ri javoblari va tahlilni ko'radi (Rash bali e'londan keyin chiqadi). Qator qo'shish kifoya.
+const ERTA_VARAQ = "Erta natija";
+function ertaRuxsat_(id, kod) {
+  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(ERTA_VARAQ);
+  if (!sh || !kod) return false;
+  const v = sh.getDataRange().getValues();
+  for (let i = 1; i < v.length; i++) {
+    if (String(v[i][0]).trim() === id && kodNorm_(v[i][1]) === kodNorm_(kod)) return true;
+  }
+  return false;
+}
 function raschElon_(id) {
   const v = PropertiesService.getScriptProperties().getProperty("rasch_" + id);
   if (!v) return null;
