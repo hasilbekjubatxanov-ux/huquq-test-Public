@@ -846,7 +846,17 @@ const N=T.n||30,CNT=T.score==="count",MAXB=CNT?N:50;
 const isOpen=i=>!!(Q&&Q[i]&&!Array.isArray(Q[i][2]));
 // Yozma javobni solishtirish: katta-kichik harf, apostrof, bo'sh joy va tinish belgilari hisobga olinmaydi; son bo'lsa faqat raqamlar
 const normA=v=>String(v==null?"":v).toLowerCase().replace(/[ʻʼ‘’'`´]/g,"").replace(/[^\p{L}\p{N}]/gu,"");
-const openOk=(a,k)=>{if(a==null||a==="")return false;return String(k).split("|").some(x=>/^\d+$/.test(x)?String(a).replace(/\D/g,"")===x:normA(a)===normA(x))};
+// Son bilan javob: "100000", "100 000", "100 ming", "yuz ming", "bir yil", "60 kun" — ma'nosi bir xil bo'lsa to'g'ri (server bilan bir xil qoida)
+const KIRILL={"а":"a","б":"b","в":"v","г":"g","д":"d","е":"e","ё":"yo","ж":"j","з":"z","и":"i","й":"y","к":"k","л":"l","м":"m","н":"n","о":"o","п":"p","р":"r","с":"s","т":"t","у":"u","ф":"f","х":"x","ц":"ts","ч":"ch","ш":"sh","ъ":"","ь":"","э":"e","ю":"yu","я":"ya","ў":"o","қ":"q","ғ":"g","ҳ":"h"};
+const SONLAR={bir:1,ikki:2,uch:3,tort:4,besh:5,olti:6,yetti:7,sakkiz:8,toqqiz:9,on:10,yigirma:20,ottiz:30,qirq:40,ellik:50,oltmish:60,yetmish:70,sakson:80,toqson:90};
+function sonOqi(v){let s=String(v==null?"":v).toLowerCase().replace(/[а-яёўқғҳ]/g,c=>KIRILL[c]!=null?KIRILL[c]:c);
+  s=s.replace(/[ʻʼ‘’'`´]/g,"").replace(/(\d)[\s.,](?=\d{3}(\D|$))/g,"$1");
+  let jami=0,joriy=0,bor=false;(s.match(/\d+|[a-z]+/g)||[]).forEach(w=>{
+    if(/^\d+$/.test(w)){joriy+=Number(w);bor=true}else if(SONLAR[w]!=null){joriy+=SONLAR[w];bor=true}
+    else if(w==="yuz"){joriy=(joriy||1)*100;bor=true}else if(w==="ming"){jami+=(joriy||1)*1000;joriy=0;bor=true}
+    else if(w==="million"||w==="mln"){jami=(jami+(joriy||1))*1e6;joriy=0;bor=true}});
+  return bor?jami+joriy:null}
+const openOk=(a,k)=>{if(a==null||a==="")return false;return String(k).split("|").some(x=>/^\d+$/.test(x)?(String(a).replace(/\D/g,"")===x||sonOqi(a)===Number(x)):normA(a)===normA(x))};
 const isRight=(i,a)=>isOpen(i)?openOk(a,K[i]):a===K[i];
 const keyLab=i=>isOpen(i)?String(K[i]).split("|")[0]:L[K[i]];
 const ansLab=(i,a)=>a===null||a===undefined||a===""||a===-1?"—":isOpen(i)?String(a):L[a];
