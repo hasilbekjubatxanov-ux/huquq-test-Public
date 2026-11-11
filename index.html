@@ -783,7 +783,7 @@ const TESTS={
     mavzu:["Asosiy prinsiplar", "Inson huquqlari kafolatlari", "Qonun ijodkorligi", "Fuqarolarning burchlari", "Prezident", "Mahalliy hokimiyat", "Sud hokimiyati", "Qoraqalpog‘iston Respublikasi", "Shaxsiy huquq va erkinliklar", "Oliy Majlis", "Asosiy prinsiplar", "Prezident", "Ijtimoiy-iqtisodiy huquqlar", "Shaxsiy huquq va erkinliklar", "Shaxsiy huquq va erkinliklar", "Qonun ijodkorligi", "Vazirlar Mahkamasi", "Inson huquqlari kafolatlari", "Ijtimoiy-iqtisodiy huquqlar", "Davlat organlari vakolatlari", "Konstitutsiya tuzilishi", "Davlat organlari vakolatlari", "Asosiy prinsiplar", "Qonun ijodkorligi", "Konstitutsiya tuzilishi", "Oliy Majlis", "Oliy Majlis", "Qonun ijodkorligi", "Qonun ijodkorligi", "Konstitutsiya tuzilishi"],
     endpoint:EP,
     title:"KONSTITUTSIYA BO‘YICHA TEST",doc:"Konstitutsiya testi",org:"Konstitutsiya bo‘yicha test · milliy sertifikat namunasida",
-    meta:"30 ta savol (26 ta variantli, 4 ta yozma) · 60 daqiqa · Natija Rash modeli bo‘yicha e’lon qilinadi",
+    meta:"30 ta savol (26 ta variantli, 4 ta yozma) · 60 daqiqa · Maksimal ball: 75 (Rash modeli)",
     desc:"O‘zbekiston Respublikasi Konstitutsiyasi bo‘yicha testda",copy:"Konstitutsiya bo‘yicha test",sub:"Testda ishtirok etgani uchun"
   },
   nhh:{
@@ -1277,16 +1277,16 @@ function renderResult(again){
     :T.desc+" faol ishtirok etib, "+N+" ta savoldan "+cTotal+" tasiga to‘g‘ri javob bergani uchun tashakkur bildiriladi."):(special
     ?T.desc+" 50 balldan "+fmt(cTotal)+" ball to‘plab, yuqori natija ko‘rsatgani uchun."
     :T.desc+" faol ishtirok etib, 50 balldan "+fmt(cTotal)+" ball to‘plagani uchun tashakkur bildiriladi.");
-  if(RS)$("cDesc").textContent=T.desc+" "+N+" ta savoldan "+cTotal+" tasiga to‘g‘ri javob berib, Rash modeli bo‘yicha "+fmt(RS.ball)+" ball"+(RS.daraja?" ("+RS.daraja+" daraja)":"")+" to‘plagani uchun.";
+  if(RS)$("cDesc").textContent=T.desc+" "+N+" ta savoldan "+cTotal+" tasiga to‘g‘ri javob berib, Rash modeli bo‘yicha 75 balldan "+fmt(RS.ball)+" ball"+(RS.daraja?" ("+RS.daraja+" daraja)":"")+" to‘plagani uchun.";
   $("cBall").textContent=RS?fmt(RS.ball):bf(cTotal);$("cDate").textContent=cDate;
-  const bs=$("cBall").nextElementSibling;if(bs)bs.textContent=RS?(RS.daraja?"· "+RS.daraja:""):"/ "+MAXB;
+  const bs=$("cBall").nextElementSibling;if(bs)bs.textContent=RS?"/ 75"+(RS.daraja?" · "+RS.daraja:""):"/ "+MAXB;
   const bl=document.querySelector(".score .sc .lab");if(bl)bl.textContent=RS?"Rash bali":CNT?"To‘g‘ri javoblar":"To‘plangan ball";
-  showMem(CNT?cTotal/N*50:cTotal);
+  showMem(RS?RS.ball/75*50:CNT?cTotal/N*50:cTotal);
   const pz=$("cPrize");pz.hidden=true;pz.textContent="";
   if(false){const b=document.createElement("b");b.textContent="Sovg‘a: ";pz.append(b,document.createTextNode("8–11-sinflardan istalgan biri bo‘yicha yopiq guruhdagi testlarga dostup beriladi. Buning uchun ushbu sertifikatni Telegramda @jubatkhanovv ga yuboring."))}
   $("prizeAct").hidden=true;
   certData={special,name,title:special?"SERTIFIKAT":"TASHAKKURNOMA",sub:subL,
-    desc:$("cDesc").textContent,ball:RS?fmt(RS.ball):bf(cTotal),date:cDate,max:RS?"":MAXB,lab:RS?"RASH BALI":CNT?"TO‘G‘RI JAVOBLAR":"TO‘PLANGAN BALL",
+    desc:$("cDesc").textContent,ball:RS?fmt(RS.ball):bf(cTotal),date:cDate,max:RS?75:MAXB,lab:RS?"RASH BALI":CNT?"TO‘G‘RI JAVOBLAR":"TO‘PLANGAN BALL",
     prize:""};
   $("cFacts").textContent=(RS&&RS.orin?"Reytingdagi o‘rin: "+RS.orin+" / "+RS.jami+" · ":"")+(retake?paid.attempt+"-urinish · ":"")+"To‘g‘ri javoblar: "+corr+" / "+N+" · Sarflangan vaqt: "+time+(timeUp?" (vaqt tugadi)":"")+" · Sahifadan chiqishlar: "+leaves;
   const bars=$("bars");bars.textContent="";const names=["Oson","O‘rtacha","Qiyin"];const fills=[];
@@ -1545,7 +1545,7 @@ function renderAdmin(){
     if(manyLeaves(r)&&!sep){sep=true;box.appendChild(mk("div","asep","Sahifadan "+MAX_LEAVES+" martadan ko‘p chiqqanlar — reyting oxirida"))}
     const c=mk("div","arow2"+(r.takror?" rep":(++rank,aTop(r.ball)&&!manyLeaves(r)?" top":""))+(manyLeaves(r)?" many":""));
     c.append(mk("div","rk",r.takror?"–":rank),mk("div","nm",r.ism+(r.takror?" (takroriy)":"")));
-    const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null,rs?(r.daraja?" · "+r.daraja:""):" / "+(at.score==="count"?at.n:50)));c.appendChild(bl);
+    const bl=mk("div","bl",fmt(r.ball));bl.append(mk("small",null,rs?" / 75"+(r.daraja?" · "+r.daraja:""):" / "+(at.score==="count"?at.n:50)));c.appendChild(bl);
     const m=mk("div","meta");
     const sec=Number(r.soniya)||0;
     m.append(kv("To‘g‘ri",r.togri+"/"+(at.n||30)));if(at.score!=="count")m.append(kv("O / O‘ / Q",r.oson+" / "+r.orta+" / "+r.qiyin));m.append(kv("Vaqt",mmss(sec)+(r.tugadi?" ⏱":"")),kv("Chiqish",String(r.chiqish)+(manyLeaves(r)?" ⚠":"")));

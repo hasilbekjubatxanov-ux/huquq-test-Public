@@ -362,7 +362,9 @@ function reyting_(id) {
 
 // ───────── Rash modeli ─────────
 // Savol qiyinligi va o'quvchi qobiliyati (teta, logit) javoblar jadvalidan birgalikda baholanadi (JMLE).
-// Ball = 50 + 10 × (teta − o'rtacha) / standart og'ish. Darajalar milliy sertifikatdagi chegaralar bo'yicha.
+// Ball = 75 × (teta − teta(0 to'g'ri)) / (teta(hammasi to'g'ri) − teta(0 to'g'ri)): 0 dan 75 gacha.
+// Darajalar milliy sertifikatdagi chegaralar bo'yicha.
+const RASCH_MAX = 75;
 const RASCH_DARAJA = [[70, "A+"], [65, "A"], [60, "B+"], [55, "B"], [50, "C+"], [46, "C"]];
 const RASCH_USTUNLAR = ["O‘rin", "Ism", "To‘g‘ri", "Teta", "Ball", "Daraja", "Kod", "Soniya", "Chiqishlar"];
 const RASCH_SAVOL_USTUNLAR = ["Savol", "To‘g‘ri topganlar", "Foiz", "Qiyinlik (logit)", "Izoh"];
@@ -454,7 +456,7 @@ function rasch_(X) {
   const teta = X.map(function (row) { let r = 0; savol.forEach(function (i) { r += row[i]; }); return tetaR[r]; });
   const bAll = []; for (let i = 0; i < L; i++) bAll.push(null);
   savol.forEach(function (i, k) { bAll[i] = b[k]; });
-  return { b: bAll, faol: savol, teta: teta };
+  return { b: bAll, faol: savol, teta: teta, tetaMin: tetaR[0], tetaMax: tetaR[Ls] };
 }
 // Admin: Rash bo'yicha hisoblash, varaqlarga yozish va e'lon qilish
 function raschHisobla_(id) {
@@ -472,13 +474,11 @@ function raschHisobla_(id) {
   if (qatnashchi.length < 2) return { error: "kam", n: qatnashchi.length };
   const R = rasch_(qatnashchi.map(function (q) { return q.x; }));
   if (!R) return { error: "kam", n: qatnashchi.length };
-  const n = qatnashchi.length;
-  const ort = R.teta.reduce(function (a, x) { return a + x; }, 0) / n;
-  const sd = Math.sqrt(R.teta.reduce(function (a, x) { return a + (x - ort) * (x - ort); }, 0) / n);
+  const n = qatnashchi.length, oraliq = R.tetaMax - R.tetaMin;
   qatnashchi.forEach(function (q, i) {
     q.togri = q.x.reduce(function (a, x) { return a + x; }, 0);
     q.teta = Math.round(R.teta[i] * 100) / 100;
-    q.ball = Math.round((sd > 0 ? 50 + 10 * (R.teta[i] - ort) / sd : 50) * 10) / 10;
+    q.ball = Math.round(Math.max(0, Math.min(RASCH_MAX, oraliq > 0 ? RASCH_MAX * (R.teta[i] - R.tetaMin) / oraliq : 0)) * 10) / 10;
     q.daraja = daraja_(q.ball);
   });
   qatnashchi.sort(function (a, b) { return b.ball - a.ball || a.chiqish - b.chiqish || a.soniya - b.soniya; });
