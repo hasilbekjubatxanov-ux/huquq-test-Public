@@ -12,6 +12,9 @@
 
 // Admin sahifasiga kirish paroli — o'zingiz o'zgartiring.
 const ADMIN_PAROL = "BU_YERGA_PAROL_YOZING";
+// Parolli testlar: test id → kirish paroli (GitHub'ga haqiqiy parol yozilmaydi, faqat Google skriptda).
+const TEST_PAROLLARI = { konst: "BU_YERGA_TEST_PAROLINI_YOZING" };
+function testParol_(id) { return Object.prototype.hasOwnProperty.call(TEST_PAROLLARI, id) ? String(TEST_PAROLLARI[id]) : ""; }
 
 // Yashirin testlar: data — savollar turgan o'zgaruvchi nomi, kodVaraq — o'z kodlar varag'i,
 // bepul: true — kodsiz, hamma uchun ochiq (har bir qurilma/Telegram akkauntga yashirin kod avtomatik beriladi),
@@ -222,11 +225,15 @@ function boshlash_(id, p) {
   // Sinov rejimi faqat admin paroli bilan: noto'g'ri parol bilan test boshlanmaydi
   if (p.sinov && p.sinov !== ADMIN_PAROL) return { error: "yopiq" };
   const sinovOk = !!p.sinov && p.sinov === ADMIN_PAROL;
+  // Parolli test: yangi o'quvchi faqat to'g'ri parol bilan boshlaydi (avval boshlaganlar parolsiz davom etadi)
+  const tp = testParol_(id), parolOk = !tp || sinovOk || String(p.parol || "") === tp;
   let kod = kodNorm_(p.code);
   if (!kod && T.bepul) {
     if (!device && !tgId) return { error: "kod" };
     const sinov = p.sinov && p.sinov === ADMIN_PAROL; // yopiq testni admin sinab ko'rishi
-    kod = egaTop_(id, device, tgId) || (yopiq && !sinov ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
+    const eski = egaTop_(id, device, tgId);
+    if (!eski && !parolOk) return { error: "testparol" };
+    kod = eski || (yopiq && !sinov ? "" : kodNorm_(kodYarat_(id, 1).codes[0]));
     if (!kod) return { error: "yopiq" };
   }
   if (kod.length < 6) return { error: "kod" };

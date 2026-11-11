@@ -482,6 +482,7 @@ footer{margin-top:34px;font-family:var(--f-ui);font-size:13px;color:var(--muted)
       <div class="field start"><label for="fio">Familiya, ism</label><input id="fio" autocomplete="name" placeholder="Masalan: Karimov Aziz"></div>
       <div class="field start" id="codeField" hidden><label for="code">Test kodi</label><input id="code" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Masalan: K7M2-QX9P">
         <span class="note">Kodingiz yo‘qmi? Telegramda <a href="https://t.me/jubatkhanovv" target="_blank" rel="noopener">@jubatkhanovv</a> ga yozing.</span></div>
+      <div class="field start" id="tpwField" hidden><label for="tpw">Test paroli</label><input id="tpw" type="password" autocomplete="off"></div>
       <div class="field start" id="sinovField" hidden><label for="sinovPw">Admin paroli (sinov rejimi)</label><input id="sinovPw" type="password" autocomplete="off"></div>
       <div class="err" id="startErr"></div>
       <div><button class="btn" id="startBtn" type="button">Testni boshlash</button></div>
@@ -776,7 +777,7 @@ const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-U
 const TESTS={
   konst:{
     q:null,key:"",tahlil:null,skey:"huquq-konst-v1",paid:true,free:true,gold:true,insta:true,group:"qonun",
-    hide:true, // hozircha ro'yxatda ko'rinmaydi, faqat ?test=konst havolasi orqali ochiladi
+    pw:true, // parolli: yangi o'quvchi test parolini yozadi (parol faqat Google skriptda)
     rasch:true, // natija Rash modeli bo'yicha: test tugagach ball ko'rsatilmaydi, admin hisoblagach hammaga birga e'lon qilinadi
     n:30,score:"count",sep:true,top:27,limit:60,
     rule:"Test 30 ta savoldan iborat: 26 tasi variantli, 4 tasining javobi raqam bilan yoziladi. Vaqt 60 daqiqa. Vaqt tugashi bilan test o‘zi yakunlanadi.",
@@ -1031,13 +1032,14 @@ $("startBtn").addEventListener("click",()=>{
 function startPaid(raw){
   const code=T.free?"":$("code").value.toUpperCase().replace(/[^A-Z0-9]/g,"");
   if(new URLSearchParams(location.search).has("sinov")&&!sinovKey()){$("startErr").textContent="Sinov rejimi uchun admin parolini yozing.";$("sinovPw").focus();return}
+  const tpw=T.pw&&!new URLSearchParams(location.search).has("sinov")?$("tpw").value.trim():"";
   if(!T.free&&code.length<6){$("startErr").textContent="Test kodini yozing.";$("code").focus();return}
   const btn=$("startBtn");btn.disabled=true;$("startErr").textContent=T.free?"Test yuklanmoqda…":"Kod tekshirilmoqda…";
-  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId,sinov:sinovKey()},tgInfo()))).then(r=>r.json()).then(d=>{
+  fetch(ENDPOINT+"?"+qs(Object.assign({action:"start",test:TID,code,name:raw,device:deviceId,sinov:sinovKey(),parol:tpw},tgInfo()))).then(r=>r.json()).then(d=>{
     btn.disabled=false;
     if(!d.ok||!Array.isArray(d.q)){
       const m={kod:"Kod noto‘g‘ri. Tekshirib, qayta yozing.",band:"Bu kod boshqa qurilmada ishlatilgan. Har bir kod faqat bitta qurilmada ishlaydi.",
-        tugagan:"Bu kod bilan test allaqachon yechilgan.",kutish:"Siz bu testni yechib bo‘lgansiz. Natijalar hali e’lon qilinmagan.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
+        tugagan:"Bu kod bilan test allaqachon yechilgan.",kutish:"Siz bu testni yechib bo‘lgansiz. Natijalar hali e’lon qilinmagan.",testparol:"Test paroli noto‘g‘ri. Parolni test muallifidan oling.",yoq:"Test hali tayyor emas.",yopiq:new URLSearchParams(location.search).has("sinov")?"Admin paroli noto‘g‘ri yoki yozilmagan.":"Bu test yopilgan."};
       $("startErr").textContent=m[d.error]||"Xatolik yuz berdi. Qayta urinib ko‘ring.";return}
     paid={code:d.code||code,q:d.q,sinov:!!d.sinov};
     // Shu qurilmada test avval yechilgan bo'lsa (masalan, brauzer ma'lumotlari tozalangan) — bu qayta urinish
@@ -1651,6 +1653,7 @@ function renderGroup(){
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
     if(t.paid&&!t.free)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
+    if(t.pw)tags.appendChild(mk("span","tag","🔑 Parol bilan kiriladi"));
     if(t.tahlil||t.paid)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
     let btn="Testni boshlash";
     if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
@@ -1675,6 +1678,7 @@ if(location.hash==="#admin"){
   $("backLink").hidden=false;
   const st=load();
   if(T.paid){paid=loadPaid();applyPaid();$("codeField").hidden=!!T.free;
+    $("tpwField").hidden=!(T.pw&&!new URLSearchParams(location.search).has("sinov"));
     const li=document.createElement("li");
     li.textContent=T.free?"Testni xohlagancha qayta yechish mumkin, lekin reyting va sertifikatda faqat birinchi natija hisoblanadi.":"Testga kirish uchun bir martalik kod kerak. Kod faqat bitta qurilmada ishlaydi.";
     document.querySelector(".rules").prepend(li)}
