@@ -390,12 +390,13 @@ function reyting_(id) {
 
 // ───────── Rash modeli ─────────
 // Savol qiyinligi va o'quvchi qobiliyati (teta, logit) javoblar jadvalidan birgalikda baholanadi (JMLE).
-// Ball = 75 × (teta − teta(0 to'g'ri)) / (teta(hammasi to'g'ri) − teta(0 to'g'ri)): 0 dan 75 gacha.
+// Ball: har bir savolning vazni Rash qiyinligidan (b) olinadi — vazn = 1 + 0,5 × (b − eng oson b).
+// Ball = 75 × (topilgan savollar vazni) / (barcha savollar vazni): 30/30 = 75, qiyin savol ko'proq ball beradi.
 // Darajalar milliy sertifikatdagi chegaralar bo'yicha.
 const RASCH_MAX = 75;
 const RASCH_DARAJA = [[70, "A+"], [65, "A"], [60, "B+"], [55, "B"], [50, "C+"], [46, "C"]];
 const RASCH_USTUNLAR = ["O‘rin", "Ism", "To‘g‘ri", "Teta", "Ball", "Daraja", "Kod", "Soniya", "Chiqishlar"];
-const RASCH_SAVOL_USTUNLAR = ["Savol", "To‘g‘ri topganlar", "Foiz", "Qiyinlik (logit)", "Izoh"];
+const RASCH_SAVOL_USTUNLAR = ["Savol", "To‘g‘ri topganlar", "Foiz", "Qiyinlik (logit)", "Izoh", "Savol bali"];
 function raschVaraqNom_(id) { return "Rash " + TESTLAR[id].varaq; }
 function raschSavolNom_(id) { return "Rash savollar " + TESTLAR[id].varaq; }
 function daraja_(ball) {
@@ -514,14 +515,24 @@ function raschHisobla_(id) {
   if (qatnashchi.length < 2) return { error: "kam", n: qatnashchi.length };
   const R = rasch_(qatnashchi.map(function (q) { return q.x; }));
   if (!R) return { error: "kam", n: qatnashchi.length };
-  const n = qatnashchi.length, oraliq = R.tetaMax - R.tetaMin;
+  const n = qatnashchi.length;
+  // Savol vaznlari: hamma topgan savol — eng oson, hech kim topmagan — eng qiyin hisoblanadi
+  const bor = R.b.filter(function (b) { return b != null; });
+  const bMin = bor.length ? Math.min.apply(null, bor) : 0, bMax = bor.length ? Math.max.apply(null, bor) : 0;
+  const vazn = R.b.map(function (b, i) {
+    if (b != null) return 1 + 0.5 * (b - bMin);
+    let c = 0; qatnashchi.forEach(function (q) { c += q.x[i]; });
+    return c === 0 ? 1 + 0.5 * (bMax - bMin) : 1;
+  });
+  const jamiVazn = vazn.reduce(function (a, w) { return a + w; }, 0);
   qatnashchi.forEach(function (q, i) {
     q.togri = q.x.reduce(function (a, x) { return a + x; }, 0);
     q.teta = Math.round(R.teta[i] * 100) / 100;
-    q.ball = Math.round(Math.max(0, Math.min(RASCH_MAX, oraliq > 0 ? RASCH_MAX * (R.teta[i] - R.tetaMin) / oraliq : 0)) * 10) / 10;
+    const olgan = q.x.reduce(function (a, x, j) { return a + x * vazn[j]; }, 0);
+    q.ball = Math.round(Math.min(RASCH_MAX, RASCH_MAX * olgan / jamiVazn) * 10) / 10;
     q.daraja = daraja_(q.ball);
   });
-  qatnashchi.sort(function (a, b) { return b.ball - a.ball || a.chiqish - b.chiqish || a.soniya - b.soniya; });
+  qatnashchi.sort(function (a, b) { return b.ball - a.ball || b.teta - a.teta || a.chiqish - b.chiqish || a.soniya - b.soniya; });
   const sh = varaq_(raschVaraqNom_(id), RASCH_USTUNLAR);
   if (sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, RASCH_USTUNLAR.length).clearContent();
   sh.getRange(2, 1, n, RASCH_USTUNLAR.length).setValues(qatnashchi.map(function (q, i) {
@@ -530,12 +541,13 @@ function raschHisobla_(id) {
   const L = R.b.length, savollar = [];
   for (let i = 0; i < L; i++) {
     let c = 0; qatnashchi.forEach(function (q) { c += q.x[i]; });
-    savollar.push({ n: i + 1, togri: c, foiz: Math.round(c / n * 1000) / 10, b: R.b[i] == null ? null : Math.round(R.b[i] * 100) / 100 });
+    savollar.push({ n: i + 1, togri: c, foiz: Math.round(c / n * 1000) / 10, b: R.b[i] == null ? null : Math.round(R.b[i] * 100) / 100,
+      ball: Math.round(RASCH_MAX * vazn[i] / jamiVazn * 100) / 100 });
   }
   const sh2 = varaq_(raschSavolNom_(id), RASCH_SAVOL_USTUNLAR);
   if (sh2.getLastRow() > 1) sh2.getRange(2, 1, sh2.getLastRow() - 1, RASCH_SAVOL_USTUNLAR.length).clearContent();
   sh2.getRange(2, 1, L, RASCH_SAVOL_USTUNLAR.length).setValues(savollar.map(function (q) {
-    return [q.n, q.togri, q.foiz, q.b == null ? "" : q.b, q.b == null ? (q.togri === 0 ? "hech kim topmagan — hisobga kirmadi" : "hamma topgan — hisobga kirmadi") : ""];
+    return [q.n, q.togri, q.foiz, q.b == null ? "" : q.b, q.b == null ? (q.togri === 0 ? "hech kim topmagan — eng qiyin vazn" : "hamma topgan — eng oson vazn") : "", q.ball];
   }));
   const elon = { sana: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "dd.MM.yyyy HH:mm"), n: n };
   PropertiesService.getScriptProperties().setProperty("rasch_" + id, JSON.stringify(elon));
