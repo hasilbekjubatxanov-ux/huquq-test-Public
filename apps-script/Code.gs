@@ -28,7 +28,7 @@ const TESTLAR = {
   t8910:  { varaq: "8–10-sinf test", data: "T8910_DATA", kodVaraq: "Kodlar 8–10", bepul: true },
   t811:   { varaq: "11-sinf PRO test", data: "T811_DATA", kodVaraq: "Kodlar 11 PRO", bepul: true },
   nhh:    { varaq: "NHH PRO test", data: "NHH_DATA", kodVaraq: "Kodlar NHH", bepul: true, yopiq: true, sanash: true, daqiqa: 90 },
-  konst:  { varaq: "Konstitutsiya test", data: "KONST_DATA", kodVaraq: "Kodlar Konst", bepul: true, sanash: true, rasch: true }
+  konst:  { varaq: "Konstitutsiya test", data: "KONST_DATA", kodVaraq: "Kodlar Konst", bepul: true, yopiq: true, sanash: true, rasch: true }
 };
 function data_(id) {
   const n = TESTLAR[id].data;

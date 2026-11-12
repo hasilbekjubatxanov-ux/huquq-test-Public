@@ -776,7 +776,7 @@ const Q0=[
 const EP="https://script.google.com/macros/s/AKfycbwO_gLdVMK9NQOHdI9vNOy9nrWjH-UOhxIwLZRynzmQBOKjfLhQNwJ07HztVAOAh1e-/exec"; // Google Apps Script manzili (apps-script/Code.gs)
 const TESTS={
   konst:{
-    q:null,key:"",tahlil:null,skey:"huquq-konst-v1",paid:true,free:true,gold:true,insta:true,group:"qonun",
+    q:null,key:"",tahlil:null,skey:"huquq-konst-v1",paid:true,free:true,gold:true,insta:true,locked:true,group:"qonun",
     pw:true, // parolli: yangi o'quvchi test parolini yozadi (parol faqat Google skriptda)
     rasch:true, // natija Rash modeli bo'yicha: test tugagach ball ko'rsatilmaydi, admin hisoblagach hammaga birga e'lon qilinadi
     n:30,score:"count",sep:true,top:27,limit:60,
@@ -1663,7 +1663,7 @@ function renderGroup(){
     const tags=mk("div","tags");
     if(t.locked)tags.appendChild(mk("span","tag","🔒 Test yopilgan"));
     if(t.paid&&!t.free)tags.appendChild(mk("span","tag","🔑 Kod bilan kiriladi"));
-    if(t.pw)tags.appendChild(mk("span","tag","🔑 Parol bilan kiriladi"));
+    if(t.pw&&!t.locked)tags.appendChild(mk("span","tag","🔑 Parol bilan kiriladi"));
     if(t.tahlil||t.paid)tags.appendChild(mk("span","tag","Javoblar va tahlillar bilan"));
     let btn="Testni boshlash";
     if(st&&st.done){tags.appendChild(mk("span","tag done","Yechilgan"));btn="Natijani ko‘rish"}
