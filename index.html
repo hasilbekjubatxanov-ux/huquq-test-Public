@@ -1504,7 +1504,11 @@ function drawRankSlide(rows,from){
   x.fillStyle="#0d5c4b";x.font="700 36px "+PF;x.textBaseline="alphabetic";
   x.fillText("Batafsil natijalar: "+(from+1)+"–"+(from+rows.length)+"-o‘rinlar",L0,74);
   // ustunlar: [sarlavha, x, tekislash]
-  const cols=[["O‘rin",95,"left"],["Ishtirokchi",173,"left"],["Ball",597,"right"],["To‘g‘ri",697,"right"],["Oson",786,"right"],["O‘rtacha",897,"right"],["Qiyin",985,"right"],["Vaqt",1096,"right"],["Chiqish",R0-9,"right"]];
+  // To'g'ri javoblar soni bo'yicha testlarda Oson/O'rtacha/Qiyin yo'q; Rash testida sertifikat darajasi chiqadi
+  const AT=TESTS[adminTest],CNT=AT.score==="count",RS=!!(AT.rasch&&adminRasch);
+  const cols=CNT?[["O‘rin",95,"left"],["Ishtirokchi",173,"left"],["Ball",640,"right"]].concat(RS?[["Daraja",760,"right"]]:[]).concat([["To‘g‘ri",RS?880:800,"right"],["Vaqt",1040,"right"],["Chiqish",R0-9,"right"]])
+    :[["O‘rin",95,"left"],["Ishtirokchi",173,"left"],["Ball",597,"right"],["To‘g‘ri",697,"right"],["Oson",786,"right"],["O‘rtacha",897,"right"],["Qiyin",985,"right"],["Vaqt",1096,"right"],["Chiqish",R0-9,"right"]];
+  const LV=cols.length-1;
   x.fillStyle="#4b5a56";x.font="700 17px "+TF;
   cols.forEach(([t,cx,al])=>{x.textAlign=al;x.fillText(t,cx,118)});
   x.fillStyle="#0d5c4b";x.fillRect(L0,127,R0-L0,1.5);
@@ -1512,18 +1516,20 @@ function drawRankSlide(rows,from){
   rows.forEach((r,i)=>{
     const cy=y+rh/2+6;
     const sec=Number(r.soniya)||0,lv=Number(r.chiqish)||0;
-    const vals=[String(from+i+1),r.ism,fmt(r.ball),r.togri+"/"+(TESTS[adminTest].n||30),String(r.oson),String(r.orta),String(r.qiyin),mmss(sec)+(r.tugadi?"*":""),String(lv)];
+    const tg=(r.togriSoni!=null?r.togriSoni:r.togri)+"/"+(AT.n||30);
+    const vals=CNT?[String(from+i+1),r.ism,fmt(r.ball)].concat(RS?[r.daraja||"—"]:[]).concat([tg,mmss(sec)+(r.tugadi?"*":""),String(lv)])
+      :[String(from+i+1),r.ism,fmt(r.ball),tg,String(r.oson),String(r.orta),String(r.qiyin),mmss(sec)+(r.tugadi?"*":""),String(lv)];
     cols.forEach(([t,cx,al],k)=>{
       x.textAlign=al;
-      x.font=(k===2||(k===8&&lv>=MAX_LEAVES)?"700 ":"400 ")+"17px "+TF;
-      x.fillStyle=k===0?"#5b6a66":k===8&&lv>=MAX_LEAVES?"#c4541f":"#1d2a27";
+      x.font=(k===2||(RS&&k===3)||(k===LV&&lv>=MAX_LEAVES)?"700 ":"400 ")+"17px "+TF;
+      x.fillStyle=k===0?"#5b6a66":k===LV&&lv>=MAX_LEAVES?"#c4541f":RS&&k===3?"#0d5c4b":"#1d2a27";
       let v=vals[k];if(k===1){while(x.measureText(v).width>370&&v.length>4)v=v.slice(0,-2)+"…"}
       x.fillText(v,cx,cy);
     });
     y+=rh;x.fillStyle="#e3e8e6";x.fillRect(L0,y,R0-L0,1);
   });
   x.textAlign="left";x.fillStyle="#5b6a66";x.font="400 17px "+TF;
-  const note="Oson, O‘rtacha, Qiyin — har bo‘limdagi 10 savoldan to‘g‘ri javoblar soni. Chiqish — test paytida sahifadan chiqib ketishlar soni ("+MAX_LEAVES+" va undan ko‘pi ajratilgan). * — vaqt tugagan.";
+  const note=(RS?"Ball — Rash modeli bo‘yicha, 75 balldan (qiyin savol ko‘proq ball beradi). Daraja — milliy sertifikat chegaralari: A+ 70, A 65, B+ 60, B 55, C+ 50, C 46. ":CNT?"":"Oson, O‘rtacha, Qiyin — har bo‘limdagi 10 savoldan to‘g‘ri javoblar soni. ")+"Chiqish — test paytida sahifadan chiqib ketishlar soni ("+MAX_LEAVES+" va undan ko‘pi ajratilgan). * — vaqt tugagan.";
   let line="",ly=y+34;note.split(" ").forEach(w=>{const t=line?line+" "+w:w;if(x.measureText(t).width>R0-L0&&line){x.fillText(line,L0,ly);ly+=24;line=w}else line=t});if(line)x.fillText(line,L0,ly);
   return c;
 }
